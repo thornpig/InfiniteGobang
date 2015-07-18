@@ -18,9 +18,11 @@ class Player {
     
     let name: String
     let index: Int
+    weak var gameBoard: GameBoard?
     var lastCellCoord: CellCoord?
     var gridCellSeqs = [GridCellSeq]()
-    weak var gameBoard: GameBoard?
+    var cellCoords = Set<CellCoord>()
+    var winningCellSeq: GridCellSeq?
     
     init(name:String, index: Int) {
         self.name = name
@@ -30,6 +32,26 @@ class Player {
     convenience init(name:String, index: Int, gameBoard: GameBoard) {
         self.init(name: name, index: index)
         self.gameBoard = gameBoard
+    }
+    
+    var opponent: Player {
+        get {
+            return self.gameBoard!.players.filter{$0 !== self}.first!
+        }
+    }
+    
+    var availableNeighborCellCoords: Set<CellCoord> {
+        get {
+            var resultCoords = Set<CellCoord>()
+            for coord in self.cellCoords {
+                for neighborCoord in coord.allNeighborCoords {
+                    if self.gameBoard![neighborCoord] == nil {
+                        resultCoords.insert(neighborCoord)
+                    }
+                }
+            }
+            return resultCoords
+        }
     }
     
     func findGridCellSeq(oritentation: GridCellSeqOrientation, coord: CellCoord) -> GridCellSeq? {
@@ -53,6 +75,7 @@ class Player {
                 case .Uncompletable:
                     self.gridCellSeqs.removeAtIndex(self.gridCellSeqs.indexOf{$0 === newSeq}!)
                 case .Completed:
+                    self.winningCellSeq = newSeq
                     return .Won
                 case .WillCompleteAfterAddingOneCell:
                     countOfGridCellSeqsThatWillCompleteAfterAddingOneCell += 1
@@ -95,6 +118,15 @@ class Player {
     func tryCellCoordsAround(coord: CellCoord, offset: Int) -> CellCoord? {
         let cellCoords = coord.getNeighborCoords(offset)
         for cellCoord in cellCoords {
+            if self.tryGridCellAtCoord(cellCoord) {
+                return cellCoord
+            }
+        }
+        return nil
+    }
+    
+    func tryNeighborCellCoords() -> CellCoord? {
+        for cellCoord in self.availableNeighborCellCoords {
             if self.tryGridCellAtCoord(cellCoord) {
                 return cellCoord
             }
@@ -158,7 +190,12 @@ class Player {
         } else {
             return nil
         }
-        
-        
+    }
+    
+    func reset() {
+        self.lastCellCoord = nil
+        self.gridCellSeqs = []
+        self.cellCoords = []
+        self.winningCellSeq = nil
     }
 }

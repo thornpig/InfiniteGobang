@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import ReplayKit
 
 var numOfRounds = 0
 
@@ -60,6 +61,7 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
         self.boardView.dataSource = self
         self.boardView.clearsContextBeforeDrawing = false
         self.view.addSubview(self.boardView)
+//        self.view.userInteractionEnabled = false
     }
     
     func scrollViewDidScroll(scrollView: UIScrollView) {
@@ -91,23 +93,28 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
                 boardCell.delegate = self
         }
         
-
-
-        
         if let gridCell = self.gameBoard[boardCell.coord] {
 //            boardCell.button.backgroundColor = self.cellColors[gridCell.player!.index]
-            if gridCell === self.lastCell {
-               boardCell.layer.borderColor = UIColor.greenColor().CGColor
-               boardCell.layer.borderWidth = 1.0
+            if let winner = self.gameBoard.winner {
+                boardCell.button.userInteractionEnabled = true
+                if winner.winningCellSeq!.cellCoords.contains(gridCell.coord) {
+                    boardCell.button.backgroundColor = kCellBackgroundColorWinning
+                }
             } else {
-                boardCell.layer.borderColor = UIColor.yellowColor().CGColor
-                boardCell.layer.borderWidth = 0.5
+                boardCell.button.userInteractionEnabled = false
+                if gridCell === self.lastCell {
+    //               boardCell.layer.borderColor = kCellBorderColorHighlight.CGColor
+    //               boardCell.layer.borderWidth = 1.0
+                    boardCell.button.backgroundColor = kCellBackgroundColorHighlight
+
+                }
             }
-            boardCell.button.setBackgroundImage(self.icons[gridCell.player!.index], forState: .Normal)
-            boardCell.button.userInteractionEnabled = false
+            boardCell.button.setBackgroundImage(self.icons[gridCell.player.index], forState: .Normal)
+
         } else {
             boardCell.button.setBackgroundImage(nil, forState: .Normal)
-            boardCell.layer.borderColor = UIColor.yellowColor().CGColor
+            boardCell.layer.borderColor = kCellBorderColor.CGColor
+            boardCell.button.backgroundColor = kCellBackgroundColor
             boardCell.layer.borderWidth = 0.5
         }
 
@@ -115,60 +122,69 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
     
     func onBoardCellTapped(boardCell: BoardCell) {
         
-        if self.gameBoard.numOfRounds > 0 && (self.gameBoard.currentPlayer as? Computer == nil) {
+        if self.gameBoard.winner != nil {
+            self.restart()
             return
         }
         
-        self.gameBoard.numOfRounds += 1
+        if self.gameBoard.numOfRounds > 0 && (self.gameBoard.currentPlayer as? Computer != nil) {
+            return
+        }
 
         self.gameBoard.grid[boardCell.coord] = GridCell(coord: boardCell.coord, player: self.gameBoard.currentPlayer)
+        self.gameBoard.addCell(GridCell(coord: boardCell.coord, player: self.gameBoard.currentPlayer))
 
         if let lastCell = self.lastCell {
-            self.boardView[lastCell.coord]?.layer.borderColor = UIColor.yellowColor().CGColor
+            self.boardView[lastCell.coord]?.layer.borderColor = kCellBorderColor.CGColor
+            self.boardView[lastCell.coord]?.button.backgroundColor = kCellBackgroundColor
             self.boardView[lastCell.coord]?.layer.borderWidth = 0.5
         }
         boardCell.button.userInteractionEnabled = false
 //        boardCell.button.backgroundColor = self.cellColors[self.gameBoard.indexOfPlayer]
         boardCell.button.setBackgroundImage(self.icons[self.gameBoard.indexOfPlayer], forState: .Normal)
-        boardCell.layer.borderColor = UIColor.greenColor().CGColor
+//        boardCell.layer.borderColor = kCellBorderColorHighlight.CGColor
+        boardCell.button.backgroundColor = kCellBackgroundColorHighlight
         boardCell.layer.borderWidth = 1.0
         self.lastCell = self.gameBoard.grid[boardCell.coord]
         
         self.gameBoard.currentPlayer.removeUncompletableSeqs()
         if self.gameBoard.currentPlayer.didPickGridCellAtCoord(boardCell.coord) == .Won {
             self.didFindWinner()
-        } else {
-            dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)) {
-                self.gameBoard.numOfRounds += 1
-                self.gameBoard.currentPlayer.removeUncompletableSeqs()
-                let cellCoordPickedByComputer = (self.gameBoard.currentPlayer as! Computer).cellCoordToPick
-                self.gameBoard.grid[cellCoordPickedByComputer] = GridCell(coord: cellCoordPickedByComputer, player: self.gameBoard.currentPlayer)
-                dispatch_async(dispatch_get_main_queue()) {
-                    if let boardCellPickedByComputer = self.boardView[cellCoordPickedByComputer] {
-                      
-                        boardCellPickedByComputer.button.userInteractionEnabled = false
+            return
+        }
+//            self.view.userInteractionEnabled = false
+        self.gameBoard.numOfRounds += 1
+        
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)) {
+            self.gameBoard.currentPlayer.removeUncompletableSeqs()
+            let cellCoordPickedByComputer = (self.gameBoard.currentPlayer as! Computer).cellCoordToPick
+            self.gameBoard.addCell(GridCell(coord: cellCoordPickedByComputer, player: self.gameBoard.currentPlayer))
+            dispatch_async(dispatch_get_main_queue()) {
+                
+//                    self.view.userInteractionEnabled = true
+                if let boardCellPickedByComputer = self.boardView[cellCoordPickedByComputer] {
+                  
+                    boardCellPickedByComputer.button.userInteractionEnabled = false
 //                        boardCellPickedByComputer.button.backgroundColor = self.cellColors[self.gameBoard.indexOfPlayer]
-                        boardCellPickedByComputer.button.setBackgroundImage(self.icons[self.gameBoard.indexOfPlayer], forState: .Normal)
-                        boardCellPickedByComputer.layer.borderColor = UIColor.greenColor().CGColor
-                        boardCellPickedByComputer.layer.borderWidth = 1.0
-                       
-                    }
-                    
-                    let centerCell = self.boardView.cells[self.boardView.numOfColumns / 2][self.boardView.numOfRows / 2]
-                    let deltaX = (CGFloat)(cellCoordPickedByComputer.indexOfColumn - centerCell.coord.indexOfColumn ) * centerCell.frame.size.width
-                    let deltaY = (CGFloat)(centerCell.coord.indexOfRow - cellCoordPickedByComputer.indexOfRow ) * centerCell.frame.size.height
-                    let offsetX = deltaX + self.boardView.bounds.origin.x
-                    let offsetY = deltaY + self.boardView.bounds.origin.y
-                    self.boardView.setContentOffset(CGPointMake(offsetX, offsetY), animated: true)
-                    
-                    self.boardView[self.lastCell!.coord]?.layer.borderColor = UIColor.yellowColor().CGColor
-                    self.boardView[self.lastCell!.coord]?.layer.borderWidth = 0.5
-                    self.lastCell = self.gameBoard.grid[cellCoordPickedByComputer]
-                    
-                    if self.gameBoard.currentPlayer.didPickGridCellAtCoord(cellCoordPickedByComputer) == .Won {
-                        self.didFindWinner()
-                    }
+                    boardCellPickedByComputer.button.setBackgroundImage(self.icons[self.gameBoard.indexOfPlayer], forState: .Normal)
+//                        boardCellPickedByComputer.layer.borderColor = kCellBorderColorHighlight.CGColor
+                    boardCellPickedByComputer.button.backgroundColor = kCellBackgroundColorHighlight
+                    boardCellPickedByComputer.layer.borderWidth = 1.0
+                   
                 }
+                
+                self.boardView.scrollToShowCellCoordAtCenter(cellCoordPickedByComputer)
+                
+                self.boardView[self.lastCell!.coord]?.layer.borderColor = kCellBorderColor.CGColor
+                self.boardView[self.lastCell!.coord]?.button.backgroundColor = kCellBackgroundColor
+                self.boardView[self.lastCell!.coord]?.layer.borderWidth = 0.5
+                self.lastCell = self.gameBoard.grid[cellCoordPickedByComputer]
+                
+                if self.gameBoard.currentPlayer.didPickGridCellAtCoord(cellCoordPickedByComputer) == .Won {
+                    self.didFindWinner()
+                    return
+                }
+                self.gameBoard.numOfRounds += 1
             }
         }
         
@@ -176,30 +192,137 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
     }
     
     func didFindWinner() {
-        let message = "\(self.gameBoard.currentPlayer.name) Won!"
-//        self.label.text = message
-//        self.label.hidden = false
-        let alert = UIAlertController(title: nil, message: message, preferredStyle: UIAlertControllerStyle.Alert)
-        alert.addAction(UIAlertAction(title: "Play Again!", style: UIAlertActionStyle.Default, handler: { action in
-            self.onRestartButtonTapped()
-        }))
-        self.presentViewController(alert, animated: true, completion: nil)
-       
+        self.gameBoard.winner = self.gameBoard.currentPlayer
+        let winningCellCoords = self.gameBoard.currentPlayer.winningCellSeq!.cellCoords
+        self.boardView.scrollToShowCellCoordAtCenter(winningCellCoords[winningCellCoords.count / 2])
+        
+        UIView.animateWithDuration(1.0, delay: 0.0, options: .CurveEaseOut, animations: {
+            for cellCoord in winningCellCoords {
+                self.boardView[cellCoord]?.button.backgroundColor = kCellBackgroundColorWinning
+            }
+        }, completion: {_ in
+            UIView.animateWithDuration(0.0, delay: 1.0, options: .CurveEaseOut, animations: {
+                }, completion: {_ in
+                    let message = "\(self.gameBoard.currentPlayer.name) Won!"
+                    let alert = UIAlertController(title: nil, message: message, preferredStyle: UIAlertControllerStyle.Alert)
+                    alert.addAction(UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default, handler: { _ in
+                        for aColomnOfCells in self.boardView.cells {
+                            for boardCell in aColomnOfCells {
+                                boardCell.button.userInteractionEnabled = true
+                            }
+                        }
+                    }))
+                    alert.addAction(UIAlertAction(title: "Play Again!", style: UIAlertActionStyle.Default, handler: { _ in
+                        self.restart()
+                    }))
+                    self.presentViewController(alert, animated: true, completion: nil)
+            })
+        })
     }
     
-    func onRestartButtonTapped() {
-        
-        self.gameBoard.grid = [:]
-        self.gameBoard.numOfRounds = 0
-        self.gameBoard.players[0].gridCellSeqs = []
-        self.gameBoard.players[1].gridCellSeqs = []
+    func restart() {
+        self.gameBoard.reset()
         self.boardView.removeFromSuperview()
         self.boardView = nil
         self.createBoardView()
-//        self.label.hidden = true
         
         print("Restart")
+        
     }
-    
-    
 }
+
+//extension BoardViewController: RPPreviewViewControllerDelegate, RPScreenRecorderDelegate {
+//    var screenRecordingToggleEnabled: Bool {
+//        return NSUserDefaults.standardUserDefaults().boolForKey(screenRecorderEnabledKey)
+//    }
+//    
+//    // MARK: Start/Stop Screen Recording
+//    
+//    func startScreenRecording() {
+//        // Do nothing if screen recording hasn't been enabled.
+//        guard screenRecordingToggleEnabled else { return }
+//        
+//        let sharedRecorder = RPScreenRecorder.sharedRecorder()
+//        
+//        // Register as the recorder's delegate to handle errors.
+//        sharedRecorder.delegate = self
+//        
+//        sharedRecorder.startRecordingWithMicrophoneEnabled(true) { error in
+//            if let error = error {
+//                self.showScreenRecordingAlert(error.localizedDescription)
+//            }
+//        }
+//    }
+//    
+//    func stopScreenRecordingWithHandler(handler:(() -> Void)) {
+//        let sharedRecorder = RPScreenRecorder.sharedRecorder()
+//        
+//        sharedRecorder.stopRecordingWithHandler { (previewViewController: RPPreviewViewController?, error: NSError?) in
+//            if let error = error {
+//                // If an error has occurred, display an alert to the user.
+//                self.showScreenRecordingAlert(error.localizedDescription)
+//                return
+//            }
+//            
+//            if let previewViewController = previewViewController {
+//                // Set delegate to handle view controller dismissal.
+//                previewViewController.previewControllerDelegate = self
+//                
+//                /*
+//                Keep a reference to the `previewViewController` to
+//                present when the user presses on preview button.
+//                */
+//                self.previewViewController = previewViewController
+//            }
+//            
+//            handler()
+//        }
+//    }
+//    
+//    func showScreenRecordingAlert(message: String) {
+//        // Pause the scene and un-pause after the alert returns.
+//        paused = true
+//        
+//        // Show an alert notifying the user that there was an issue with starting or stopping the recorder.
+//        let alertController = UIAlertController(title: nil, message: message, preferredStyle: .Alert)
+//        
+//        let alertAction = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { _ in
+//            self.paused = false
+//        }
+//        alertController.addAction(alertAction)
+//        
+//        view?.window?.rootViewController?.presentViewController(alertController, animated: false, completion: nil)
+//    }
+//    
+//    func discardRecording() {
+//        // When we no longer need the `previewViewController`, tell ReplayKit to discard the recording and nil out our reference
+//        RPScreenRecorder.sharedRecorder().discardRecordingWithHandler {
+//            self.previewViewController = nil
+//        }
+//    }
+//    
+//    // MARK: RPScreenRecorderDelegate
+//    
+//    func screenRecorder(screenRecorder: RPScreenRecorder, didStopRecordingWithError error: NSError, previewViewController: RPPreviewViewController?) {
+//        // Display the error the user to alert them that the recording failed.
+//        showScreenRecordingAlert(error.localizedDescription)
+//        
+//        /*
+//        Hold onto a reference of the `previewViewController` if not nil. The
+//        `previewViewController` will be nil when:
+//        
+//        - There is an error writing the movie file (disk space, avfoundation).
+//        - startRecording failed due to AirPlay/TVOut session is in progress.
+//        - startRecording failed because the device does not support it (lower than A7)
+//        */
+//        if previewViewController != nil {
+//            self.previewViewController = previewViewController
+//        }
+//    }
+//    
+//    // MARK: RPPreviewViewControllerDelegate
+//    
+//    func previewControllerDidFinish(previewController: RPPreviewViewController) {
+//        previewViewController?.dismissViewControllerAnimated(true, completion: nil)
+//    }
+//}

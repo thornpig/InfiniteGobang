@@ -11,7 +11,6 @@
 		364AE9151B571A5B00C8C715 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 364AE9131B571A5B00C8C715 /* Main.storyboard */; };
 		364AE9171B571A5B00C8C715 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 364AE9161B571A5B00C8C715 /* Assets.xcassets */; };
 		364AE91A1B571A5C00C8C715 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 364AE9181B571A5C00C8C715 /* LaunchScreen.storyboard */; };
-		364AE9251B571A5C00C8C715 /* InfiniteGobangTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364AE9241B571A5C00C8C715 /* InfiniteGobangTests.swift */; };
 		364AE9301B571A5C00C8C715 /* InfiniteGobangUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364AE92F1B571A5C00C8C715 /* InfiniteGobangUITests.swift */; };
 		364AE9401B571AD300C8C715 /* BoardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364AE93F1B571AD300C8C715 /* BoardViewController.swift */; };
 		364AE9421B571B3600C8C715 /* GameBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364AE9411B571B3600C8C715 /* GameBoard.swift */; };
@@ -22,6 +21,7 @@
 		364AE94C1B571C2F00C8C715 /* Computer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364AE94B1B571C2F00C8C715 /* Computer.swift */; };
 		364AE9501B571C9500C8C715 /* BoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364AE94F1B571C9500C8C715 /* BoardView.swift */; };
 		364AE9521B571CBF00C8C715 /* BoardCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364AE9511B571CBF00C8C715 /* BoardCell.swift */; };
+		36D9923D1B59BF6A0018EB74 /* InfiniteGobangTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364AE9241B571A5C00C8C715 /* InfiniteGobangTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -62,7 +62,7 @@
 		364AE9491B571C0F00C8C715 /* Player.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 		364AE94B1B571C2F00C8C715 /* Computer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Computer.swift; sourceTree = "<group>"; };
 		364AE94F1B571C9500C8C715 /* BoardView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BoardView.swift; path = ../BoardView.swift; sourceTree = "<group>"; };
-		364AE9511B571CBF00C8C715 /* BoardCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoardCell.swift; sourceTree = "<group>"; };
+		364AE9511B571CBF00C8C715 /* BoardCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = BoardCell.swift; path = ../BoardCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,7 +93,6 @@
 		364AE9031B571A5B00C8C715 = {
 			isa = PBXGroup;
 			children = (
-				364AE9511B571CBF00C8C715 /* BoardCell.swift */,
 				364AE90E1B571A5B00C8C715 /* InfiniteGobang */,
 				364AE9231B571A5C00C8C715 /* InfiniteGobangTests */,
 				364AE92E1B571A5C00C8C715 /* InfiniteGobangUITests */,
@@ -123,6 +122,7 @@
 				364AE9491B571C0F00C8C715 /* Player.swift */,
 				364AE94B1B571C2F00C8C715 /* Computer.swift */,
 				364AE94F1B571C9500C8C715 /* BoardView.swift */,
+				364AE9511B571CBF00C8C715 /* BoardCell.swift */,
 				364AE9131B571A5B00C8C715 /* Main.storyboard */,
 				364AE9161B571A5B00C8C715 /* Assets.xcassets */,
 				364AE9181B571A5C00C8C715 /* LaunchScreen.storyboard */,
@@ -296,7 +296,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				364AE9251B571A5C00C8C715 /* InfiniteGobangTests.swift in Sources */,
+				36D9923D1B59BF6A0018EB74 /* InfiniteGobangTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -515,6 +515,7 @@
 				364AE9361B571A5C00C8C715 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		364AE9371B571A5C00C8C715 /* Build configuration list for PBXNativeTarget "InfiniteGobangTests" */ = {
 			isa = XCConfigurationList;
@@ -523,6 +524,7 @@
 				364AE9391B571A5C00C8C715 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		364AE93A1B571A5C00C8C715 /* Build configuration list for PBXNativeTarget "InfiniteGobangUITests" */ = {
 			isa = XCConfigurationList;
@@ -531,6 +533,7 @@
 				364AE93C1B571A5C00C8C715 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

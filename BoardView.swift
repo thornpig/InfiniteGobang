@@ -86,7 +86,7 @@ final class BoardView: UIScrollView {
         super.init(frame: frame)
         self.contentSize = CGSizeMake(self.bounds.size.width * 2.0, self.bounds.size.height * 2.0)
         self.bounds.origin = CGPointMake(self.bounds.size.width * 0.5, self.bounds.size.height * 0.5)
-        self.backgroundColor = UIColor.redColor()
+        self.backgroundColor = kCellBackgroundColor
         
 // the two options below cause frame drop of 5 fps
 //        self.decelerationRate = UIScrollViewDecelerationRateFast
@@ -177,7 +177,7 @@ final class BoardView: UIScrollView {
                 boardCell.coord.indexOfColumn = indexOfColumn
                 boardCell.coord.indexOfRow = indexOfRow
 //                boardCell.button.setTitle("\(boardCell.coord.indexOfColumn),\(boardCell.coord.indexOfRow)", forState: .Normal)
-                boardCell.button.backgroundColor = UIColor.lightGrayColor()
+                boardCell.button.backgroundColor = kCellBackgroundColor
                 boardCell.button.userInteractionEnabled = true
                 boardCellToAdd = boardCell
 //                println("put reusable cell at \(boardCell.indexOfColumn),\(boardCell.indexOfRow)")
@@ -239,7 +239,7 @@ final class BoardView: UIScrollView {
                 boardCell.coord.indexOfColumn = aColumnOfCells[0].coord.indexOfColumn
                 boardCell.coord.indexOfRow = indexOfRow
 //                boardCell.button.setTitle("\(boardCell.coord.indexOfColumn),\(boardCell.coord.indexOfRow)", forState: .Normal)
-                boardCell.button.backgroundColor = UIColor.lightGrayColor()
+                boardCell.button.backgroundColor = kCellBackgroundColor
                 boardCell.button.userInteractionEnabled = true
                 boardCellToAdd = boardCell
 //                println("put reusable cell at \(boardCell.indexOfColumn),\(boardCell.indexOfRow)")
@@ -312,6 +312,15 @@ final class BoardView: UIScrollView {
         if self.contentOffset.y + self.bounds.size.height >= self.contentSize.height - bufferSize.height {
             self.contentInset.bottom += bufferSize.height
         }
+    }
+    
+    func scrollToShowCellCoordAtCenter(coord: CellCoord) {
+        let centerCell = self.cells[self.numOfColumns / 2][self.numOfRows / 2]
+        let deltaX = (CGFloat)(coord.indexOfColumn - centerCell.coord.indexOfColumn ) * centerCell.frame.size.width
+        let deltaY = (CGFloat)(centerCell.coord.indexOfRow - coord.indexOfRow ) * centerCell.frame.size.height
+        let offsetX = deltaX + self.bounds.origin.x
+        let offsetY = deltaY + self.bounds.origin.y
+        self.setContentOffset(CGPointMake(offsetX, offsetY), animated: true)
     }
     
 

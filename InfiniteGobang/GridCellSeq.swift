@@ -63,17 +63,16 @@ class GridCellSeq {
         }
     }
     
-    
-    var refCoord: CellCoord {
+    var cellCoords: [CellCoord] {
         get {
-            switch self.orientation {
-            case .Horizontal:
-                return CellCoord(indexOfColumn: 0, indexOfRow: 0)
-            default:
-                return CellCoord(indexOfColumn: self.seq[0].coord.indexOfColumn - self.orientation.rawValue * self.seq[0].coord.indexOfRow,indexOfRow: 0)
+            var coords = [CellCoord]()
+            for gridCell in self.seq {
+                coords.append(gridCell.coord)
             }
+            return coords
         }
     }
+    
     
     var neighborCoords: [CellCoord] {
         get {
@@ -175,7 +174,7 @@ class GridCellSeq {
     var status: GridCellSeqStatus {
         get {
             
-            if self.seq.count == kCountOfSeqToWin  {
+            if self.seq.count >= kCountOfSeqToWin  {
                 return .Completed
             } else if self.effectiveCount == kCountOfSeqToWin {
                 return .WillComplete
@@ -208,7 +207,7 @@ class GridCellSeq {
                     let lowerNeighborCoords = self.seq.first!.coord.getNeighborCoords(numOfLowerNeighbors, orientation: self.orientation, bound: .Lower)
                     for coord in lowerNeighborCoords {
                         if let gridCell = self.gameBoard![coord] {
-                            if gridCell.player !== self.seq.first!.player! {
+                            if gridCell.player !== self.seq.first!.player {
                                 continue OuterLoop
                             }
                         }
@@ -220,7 +219,7 @@ class GridCellSeq {
                     let upperNeighborCoords = self.seq.last!.coord.getNeighborCoords(numOfUpperNeighbors, orientation: self.orientation, bound: .Upper)
                     for coord in upperNeighborCoords {
                         if let gridCell = self.gameBoard![coord] {
-                            if gridCell.player !== self.seq.first!.player! {
+                            if gridCell.player !== self.seq.first!.player {
                                 continue OuterLoop
                             }
                         }

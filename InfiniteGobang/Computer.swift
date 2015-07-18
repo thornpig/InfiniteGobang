@@ -12,11 +12,7 @@ let kOffsetForTryingCells = kCountOfSeqToWin - 1
 
 class Computer: Player {
     
-    var opponent: Player {
-        get {
-            return self.gameBoard!.players.filter{$0 !== self}.first!
-        }
-    }
+
    
     var cellCoordToPick: CellCoord {
         get {
@@ -53,16 +49,37 @@ class Computer: Player {
                 return coord
             }
             
-            if let lastCellCoord = self.lastCellCoord {
-                if let winningCoord = self.tryCellCoordsAround(lastCellCoord, offset: kOffsetForTryingCells) {
-                    return winningCoord
-                }
+//            if let lastCellCoord = self.lastCellCoord {
+//                if let winningCoord = self.tryCellCoordsAround(lastCellCoord, offset: kOffsetForTryingCells) {
+//                    return winningCoord
+//                }
+//            }
+//            
+//
+//            if let opponentLastCellCoord = self.opponent.lastCellCoord {
+//                if let opponenetWinningCoord = self.opponent.tryCellCoordsAround(opponentLastCellCoord, offset: kOffsetForTryingCells) {
+//                    return opponenetWinningCoord
+//                }
+//            }
+            
+            if let winningCoord = self.tryNeighborCellCoords() {
+                return winningCoord
             }
             
-
-            if let opponentLastCellCoord = self.opponent.lastCellCoord {
-                if let opponenetWinningCoord = self.opponent.tryCellCoordsAround(opponentLastCellCoord, offset: kOffsetForTryingCells) {
-                    return opponenetWinningCoord
+            if let opponenetWinningCoord = self.opponent.tryNeighborCellCoords() {
+                return opponenetWinningCoord
+            }
+            
+            if self.opponent.gridCellSeqs.count > 0 {
+                var seqOfOpponentToHandle = self.opponent.gridCellSeqs[0]
+                for gridCellSeq in self.opponent.gridCellSeqs {
+                    if gridCellSeq.effectiveCount > seqOfOpponentToHandle.effectiveCount {
+                        seqOfOpponentToHandle = gridCellSeq
+                    }
+                }
+                if seqOfOpponentToHandle.effectiveCount > kCountOfSeqToWin - 3 {
+                    let neighborCoords = seqOfOpponentToHandle.neighborCoords
+                    return neighborCoords[neighborCoords.indexOf{self.gameBoard![$0] == nil}!]
                 }
             }
             
@@ -74,17 +91,6 @@ class Computer: Player {
                     }
                 }
                 let neighborCoords = seqToHandle.neighborCoords
-                return neighborCoords[neighborCoords.indexOf{self.gameBoard![$0] == nil}!]
-            }
-            
-            if self.opponent.gridCellSeqs.count > 0 {
-                var seqOfOpponentToHandle = self.opponent.gridCellSeqs[0]
-                for gridCellSeq in self.opponent.gridCellSeqs {
-                    if gridCellSeq.effectiveCount > seqOfOpponentToHandle.effectiveCount {
-                        seqOfOpponentToHandle = gridCellSeq
-                    }
-                }
-                let neighborCoords = seqOfOpponentToHandle.neighborCoords
                 return neighborCoords[neighborCoords.indexOf{self.gameBoard![$0] == nil}!]
             }
             
