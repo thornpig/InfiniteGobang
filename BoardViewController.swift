@@ -13,6 +13,10 @@ var numOfRounds = 0
 
 class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewDataSource, BoardCellDelegate {
     
+    
+    @IBOutlet weak var recordSwitch: UISwitch!
+    @IBOutlet weak var historyBarButtonItem: UIBarButtonItem!
+    
     var boardView: BoardView!
     var gameBoard: GameBoard!
     var label: UILabel!
@@ -21,6 +25,12 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
     var cellColors: [UIColor]!
     var icons: [UIImage]!
     var lastCell: GridCell?
+    
+    var previewViewController: UIViewController?
+    var recorderPaused: Bool = false
+    
+    var numOfWins: Int = 0
+    var numOfLoses: Int = 0
 
     override func loadView() {
         super.loadView()
@@ -40,11 +50,16 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        self.recordSwitch.on = NSUserDefaults.standardUserDefaults().boolForKey("shouldRecord")
+        self.historyBarButtonItem.title = "\(self.numOfWins) W  :  \(self.numOfLoses)"
+        
         self.gameBoard = GameBoard()
-        self.gameBoard.players = [Player(name: "Zack", index: 0, gameBoard: self.gameBoard), Computer(name: "Computer", index: 1, gameBoard: self.gameBoard)]
+        self.gameBoard.players = [Player(name: "You", index: 0, gameBoard: self.gameBoard), Computer(name: "Computer", index: 1, gameBoard: self.gameBoard)]
         self.cellColors = [UIColor.greenColor(), UIColor.blueColor()]
         self.icons = [UIImage(named: "circle")!, UIImage(named: "cross")!]
         
+        self.startScreenRecording()
+
     }
 
     override func didReceiveMemoryWarning() {
@@ -122,12 +137,13 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
     
     func onBoardCellTapped(boardCell: BoardCell) {
         
+
         if self.gameBoard.winner != nil {
             self.restart()
             return
         }
         
-        if self.gameBoard.numOfRounds > 0 && (self.gameBoard.currentPlayer as? Computer != nil) {
+        if self.gameBoard.numOfRounds > 1 && (self.gameBoard.currentPlayer as? Computer != nil) {
             return
         }
 
@@ -192,6 +208,8 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
     }
     
     func didFindWinner() {
+
+        
         self.gameBoard.winner = self.gameBoard.currentPlayer
         let winningCellCoords = self.gameBoard.currentPlayer.winningCellSeq!.cellCoords
         self.boardView.scrollToShowCellCoordAtCenter(winningCellCoords[winningCellCoords.count / 2])
@@ -201,22 +219,33 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
                 self.boardView[cellCoord]?.button.backgroundColor = kCellBackgroundColorWinning
             }
         }, completion: {_ in
-            UIView.animateWithDuration(0.0, delay: 1.0, options: .CurveEaseOut, animations: {
-                }, completion: {_ in
-                    let message = "\(self.gameBoard.currentPlayer.name) Won!"
-                    let alert = UIAlertController(title: nil, message: message, preferredStyle: UIAlertControllerStyle.Alert)
-                    alert.addAction(UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default, handler: { _ in
-                        for aColomnOfCells in self.boardView.cells {
-                            for boardCell in aColomnOfCells {
-                                boardCell.button.userInteractionEnabled = true
+            
+            self.stopScreenRecordingWithHandler { _ in
+
+                UIView.animateWithDuration(0.0, delay: 1.0, options: .CurveEaseOut, animations: {
+                    }, completion: {_ in
+                        let message = "\(self.gameBoard.currentPlayer.name) Won!"
+                        let alert = UIAlertController(title: nil, message: message, preferredStyle: UIAlertControllerStyle.Alert)
+                        alert.addAction(UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default, handler: { _ in
+                            for aColomnOfCells in self.boardView.cells {
+                                for boardCell in aColomnOfCells {
+                                    boardCell.button.userInteractionEnabled = true
+                                }
                             }
+                        }))
+                        if self.previewViewController != nil {
+                            alert.addAction(UIAlertAction(title: "Preview recording", style: UIAlertActionStyle.Default, handler: { _ in
+                                self.presentViewController(self.previewViewController!, animated: true, completion: nil)
+                            }))
                         }
-                    }))
-                    alert.addAction(UIAlertAction(title: "Play Again!", style: UIAlertActionStyle.Default, handler: { _ in
-                        self.restart()
-                    }))
-                    self.presentViewController(alert, animated: true, completion: nil)
-            })
+                        alert.addAction(UIAlertAction(title: "New game", style: UIAlertActionStyle.Default, handler: { _ in
+                            self.restart()
+                        }))
+
+                        self.presentViewController(alert, animated: true, completion: nil)
+
+                })
+            }
         })
     }
     
@@ -226,103 +255,124 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
         self.boardView = nil
         self.createBoardView()
         
+        self.discardRecording()
+        self.startScreenRecording()
+        
         print("Restart")
         
     }
+    
+    @IBAction func onRecordSwitchChanged(sender: UISwitch) {
+        let defaults = NSUserDefaults.standardUserDefaults()
+        defaults.setObject(sender.on, forKey: "shouldRecord")
+    }
+    
 }
 
-//extension BoardViewController: RPPreviewViewControllerDelegate, RPScreenRecorderDelegate {
-//    var screenRecordingToggleEnabled: Bool {
+extension BoardViewController: RPPreviewViewControllerDelegate, RPScreenRecorderDelegate {
+    var screenRecordingToggleEnabled: Bool {
 //        return NSUserDefaults.standardUserDefaults().boolForKey(screenRecorderEnabledKey)
-//    }
-//    
-//    // MARK: Start/Stop Screen Recording
-//    
-//    func startScreenRecording() {
-//        // Do nothing if screen recording hasn't been enabled.
-//        guard screenRecordingToggleEnabled else { return }
-//        
-//        let sharedRecorder = RPScreenRecorder.sharedRecorder()
-//        
-//        // Register as the recorder's delegate to handle errors.
-//        sharedRecorder.delegate = self
-//        
-//        sharedRecorder.startRecordingWithMicrophoneEnabled(true) { error in
-//            if let error = error {
-//                self.showScreenRecordingAlert(error.localizedDescription)
-//            }
-//        }
-//    }
-//    
-//    func stopScreenRecordingWithHandler(handler:(() -> Void)) {
-//        let sharedRecorder = RPScreenRecorder.sharedRecorder()
-//        
-//        sharedRecorder.stopRecordingWithHandler { (previewViewController: RPPreviewViewController?, error: NSError?) in
-//            if let error = error {
-//                // If an error has occurred, display an alert to the user.
-//                self.showScreenRecordingAlert(error.localizedDescription)
-//                return
-//            }
-//            
-//            if let previewViewController = previewViewController {
-//                // Set delegate to handle view controller dismissal.
-//                previewViewController.previewControllerDelegate = self
-//                
-//                /*
-//                Keep a reference to the `previewViewController` to
-//                present when the user presses on preview button.
-//                */
-//                self.previewViewController = previewViewController
-//            }
-//            
-//            handler()
-//        }
-//    }
-//    
-//    func showScreenRecordingAlert(message: String) {
-//        // Pause the scene and un-pause after the alert returns.
-//        paused = true
-//        
-//        // Show an alert notifying the user that there was an issue with starting or stopping the recorder.
-//        let alertController = UIAlertController(title: nil, message: message, preferredStyle: .Alert)
-//        
-//        let alertAction = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { _ in
-//            self.paused = false
-//        }
-//        alertController.addAction(alertAction)
-//        
-//        view?.window?.rootViewController?.presentViewController(alertController, animated: false, completion: nil)
-//    }
-//    
-//    func discardRecording() {
-//        // When we no longer need the `previewViewController`, tell ReplayKit to discard the recording and nil out our reference
-//        RPScreenRecorder.sharedRecorder().discardRecordingWithHandler {
-//            self.previewViewController = nil
-//        }
-//    }
-//    
-//    // MARK: RPScreenRecorderDelegate
-//    
-//    func screenRecorder(screenRecorder: RPScreenRecorder, didStopRecordingWithError error: NSError, previewViewController: RPPreviewViewController?) {
-//        // Display the error the user to alert them that the recording failed.
-//        showScreenRecordingAlert(error.localizedDescription)
-//        
-//        /*
-//        Hold onto a reference of the `previewViewController` if not nil. The
-//        `previewViewController` will be nil when:
-//        
-//        - There is an error writing the movie file (disk space, avfoundation).
-//        - startRecording failed due to AirPlay/TVOut session is in progress.
-//        - startRecording failed because the device does not support it (lower than A7)
-//        */
-//        if previewViewController != nil {
-//            self.previewViewController = previewViewController
-//        }
-//    }
-//    
-//    // MARK: RPPreviewViewControllerDelegate
-//    
+        return self.recordSwitch.on
+    }
+    
+    // MARK: Start/Stop Screen Recording
+    
+    func startScreenRecording() {
+        // Do nothing if screen recording hasn't been enabled.
+        guard screenRecordingToggleEnabled else { return }
+        
+        let sharedRecorder = RPScreenRecorder.sharedRecorder()
+        
+        // Register as the recorder's delegate to handle errors.
+        sharedRecorder.delegate = self
+        
+        sharedRecorder.startRecordingWithMicrophoneEnabled(true) { error in
+            if let error = error {
+                self.showScreenRecordingAlert(error.localizedDescription)
+            }
+        }
+    }
+    
+    func stopScreenRecordingWithHandler(handler:(() -> Void)) {
+        
+        let sharedRecorder = RPScreenRecorder.sharedRecorder()
+        
+        if sharedRecorder.recording == false {
+            handler()
+            return
+        }
+        
+        sharedRecorder.stopRecordingWithHandler { (previewViewController: RPPreviewViewController?, error: NSError?) in
+            if let error = error {
+                // If an error has occurred, display an alert to the user.
+                self.showScreenRecordingAlert(error.localizedDescription)
+                return
+            }
+            
+            if let previewViewController = previewViewController {
+                // Set delegate to handle view controller dismissal.
+                previewViewController.previewControllerDelegate = self
+                
+                /*
+                Keep a reference to the `previewViewController` to
+                present when the user presses on preview button.
+                */
+                self.previewViewController = previewViewController
+            }
+            
+            handler()
+        }
+    }
+    
+    func showScreenRecordingAlert(message: String) {
+        // Pause the scene and un-pause after the alert returns.
+        self.recorderPaused = true
+        
+        // Show an alert notifying the user that there was an issue with starting or stopping the recorder.
+        let alertController = UIAlertController(title: nil, message: message, preferredStyle: .Alert)
+        
+        let alertAction = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { _ in
+            self.recorderPaused = false
+        }
+        alertController.addAction(alertAction)
+        
+        view?.window?.rootViewController?.presentViewController(alertController, animated: false, completion: nil)
+    }
+    
+    func discardRecording() {
+        // When we no longer need the `previewViewController`, tell ReplayKit to discard the recording and nil out our reference
+        RPScreenRecorder.sharedRecorder().discardRecordingWithHandler {
+            self.previewViewController = nil
+        }
+    }
+    
+    // MARK: RPScreenRecorderDelegate
+    
+    func screenRecorder(screenRecorder: RPScreenRecorder, didStopRecordingWithError error: NSError, previewViewController: RPPreviewViewController?) {
+        // Display the error the user to alert them that the recording failed.
+        showScreenRecordingAlert(error.localizedDescription)
+        
+        /*
+        Hold onto a reference of the `previewViewController` if not nil. The
+        `previewViewController` will be nil when:
+        
+        - There is an error writing the movie file (disk space, avfoundation).
+        - startRecording failed due to AirPlay/TVOut session is in progress.
+        - startRecording failed because the device does not support it (lower than A7)
+        */
+        if previewViewController != nil {
+            self.previewViewController = previewViewController
+        }
+    }
+    
+    // MARK: RPPreviewViewControllerDelegate
+    
 //    func previewControllerDidFinish(previewController: RPPreviewViewController) {
 //        previewViewController?.dismissViewControllerAnimated(true, completion: nil)
 //    }
-//}
+    
+    func previewController(previewController: RPPreviewViewController, didFinishWithActivityTypes activityTypes: Set<String>) {
+        previewViewController?.dismissViewControllerAnimated(true, completion: nil)
+    }
+    
+}
