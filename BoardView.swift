@@ -314,13 +314,31 @@ final class BoardView: UIScrollView {
         }
     }
     
-    func scrollToShowCellCoordAtCenter(coord: CellCoord) {
+    func scrollToShowCellCoordAtCenter(coord: CellCoord, completion: (() -> Void)? ) {
+//    func scrollToShowCellCoordAtCenter(coord: CellCoord) {
         let centerCell = self.cells[self.numOfColumns / 2][self.numOfRows / 2]
         let deltaX = (CGFloat)(coord.indexOfColumn - centerCell.coord.indexOfColumn ) * centerCell.frame.size.width
         let deltaY = (CGFloat)(centerCell.coord.indexOfRow - coord.indexOfRow ) * centerCell.frame.size.height
         let offsetX = deltaX + self.bounds.origin.x
         let offsetY = deltaY + self.bounds.origin.y
+        CATransaction.begin()
+        CATransaction.setCompletionBlock(completion)
         self.setContentOffset(CGPointMake(offsetX, offsetY), animated: true)
+        CATransaction.commit()
+        
+        //Customized animation dosen't look right, don't understand why
+//        UIView.animateWithDuration(0.3, animations: { () -> Void in
+//            self.contentOffset = CGPointMake(offsetX, offsetY)
+//            }) { _ in
+//                completion?()
+//        }
+    }
+    
+    func getFrameForCellCoord(coord: CellCoord) -> CGRect {
+        let firstCell = self.cells[0][0]
+        let deltaX = (CGFloat)(coord.indexOfColumn - firstCell.coord.indexOfColumn ) * firstCell.frame.size.width
+        let deltaY = (CGFloat)(firstCell.coord.indexOfRow - coord.indexOfRow ) * firstCell.frame.size.height
+        return CGRectMake(firstCell.frame.origin.x + deltaX, firstCell.frame.origin.y + deltaY, firstCell.frame.size.width, firstCell.frame.size.height)
     }
     
 

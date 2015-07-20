@@ -11,9 +11,10 @@ import UIKit
 let kDefaultBoardCellSize: CGFloat = 50.0
 let kCellBackgroundColor = UIColor.lightGrayColor()
 let kCellBackgroundColorHighlight = UIColor(red: 135.0/255.0, green: 206.0/255.0, blue: 255.0/255.0, alpha: 1.0)
-let kCellBackgroundColorWinning = UIColor(red: 210.0/255.0, green: 180.0/255.0, blue: 140.0/255.0, alpha: 1.0)
+//let kCellBackgroundColorWinning = UIColor(red: 210.0/255.0, green: 180.0/255.0, blue: 140.0/255.0, alpha: 1.0)
 let kCellBorderColor = UIColor(red: 139.0/255.0, green: 135.0/255.0, blue: 76.0/255.0, alpha: 1.0)
 let kCellBorderColorHighlight = UIColor(red: 71.0/255.0, green: 60.0/255.0, blue: 139.0/255.0, alpha: 1.0)
+let kCellBackgroundColorWinning = kCellBackgroundColorHighlight
 
 protocol BoardCellDelegate: class  {
     func onBoardCellTapped(boardCell: BoardCell)
