@@ -79,7 +79,7 @@ class Computer: Player {
                 }
                 if seqOfOpponentToHandle.effectiveCount > kCountOfSeqToWin - 3 {
                     let neighborCoords = seqOfOpponentToHandle.neighborCoords
-                    return neighborCoords[neighborCoords.indexOf{self.gameBoard![$0] == nil}!]
+                    return neighborCoords[neighborCoords.index{self.gameBoard![$0] == nil}!]
                 }
             }
             
@@ -91,7 +91,7 @@ class Computer: Player {
                     }
                 }
                 let neighborCoords = seqToHandle.neighborCoords
-                return neighborCoords[neighborCoords.indexOf{self.gameBoard![$0] == nil}!]
+                return neighborCoords[neighborCoords.index{self.gameBoard![$0] == nil}!]
             }
             
             var leftMostColumn = 0

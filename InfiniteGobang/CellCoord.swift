@@ -30,10 +30,10 @@ struct CellCoord: Hashable {
             let diagonalRightNeighborCoords = [self + CellCoord(indexOfColumn: 1, indexOfRow: -1),
                                             self + CellCoord(indexOfColumn: -1, indexOfRow: 1)]
             
-            return [.Horizontal: horizontalNeighborCoords,
-                    .Vertical: verticalNeighborCoords,
-                    .DiagonalLeft: diagonalLeftNeighborCoords,
-                    .DiagonalRight: diagonalRightNeighborCoords]
+            return [.horizontal: horizontalNeighborCoords,
+                    .vertical: verticalNeighborCoords,
+                    .diagonalLeft: diagonalLeftNeighborCoords,
+                    .diagonalRight: diagonalRightNeighborCoords]
         }
     }
     
@@ -48,15 +48,15 @@ struct CellCoord: Hashable {
         }
     }
     
-    func getNeighborCoords(offset: Int, orientation: GridCellSeqOrientation, bound: GridCellSeqBound) -> [CellCoord] {
+    func getNeighborCoords(_ offset: Int, orientation: GridCellSeqOrientation, bound: GridCellSeqBound) -> [CellCoord] {
         var refCoord = self
         var neighborCoords = [CellCoord]()
 
         switch bound {
-        case .Lower:
+        case .lower:
             for _ in 0...offset - 1 {
                 switch orientation {
-                case .Horizontal:
+                case .horizontal:
                     neighborCoords.append(refCoord + CellCoord(indexOfColumn: -1, indexOfRow: 0))
                 default:
                     neighborCoords.append(refCoord + CellCoord(indexOfColumn: -1 * orientation.rawValue, indexOfRow: -1))
@@ -66,7 +66,7 @@ struct CellCoord: Hashable {
         default:
             for _ in 0...offset - 1 {
                 switch orientation {
-                case .Horizontal:
+                case .horizontal:
                     neighborCoords.append(refCoord + CellCoord(indexOfColumn: 1, indexOfRow: 0))
                 default:
                     neighborCoords.append(refCoord + CellCoord(indexOfColumn: orientation.rawValue, indexOfRow: 1))
@@ -78,7 +78,7 @@ struct CellCoord: Hashable {
         return neighborCoords
     }
     
-    func getNeighborCoords(offset: Int) -> [CellCoord] {
+    func getNeighborCoords(_ offset: Int) -> [CellCoord] {
         var neighborCoords = [CellCoord]()
         for bound in GridCellSeqBound.allValues {
             for orientation in GridCellSeqOrientation.allValues {

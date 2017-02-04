@@ -41,12 +41,12 @@ final class GameBoard {
         return coords.map{return grid[$0]}
     }
     
-    func addCell(cell: GridCell) {
+    func addCell(_ cell: GridCell) {
         self.grid[cell.coord] = cell
         cell.player.cellCoords.insert(cell.coord)
     }
     
-    func removeCellAtCoord(coord: CellCoord) {
+    func removeCellAtCoord(_ coord: CellCoord) {
         if let gameCell = self.grid[coord] {
             gameCell.player.cellCoords.remove(coord)
             self.grid[coord] = nil

@@ -26,14 +26,14 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
     var numOfWins: Int = 0 {
         didSet {
             self.title = "\(self.numOfWins) W  :  \(self.numOfLoses) L"
-            NSUserDefaults.standardUserDefaults().setInteger(self.numOfWins, forKey: kUserDefaultKeyForWins)
+            UserDefaults.standard.set(self.numOfWins, forKey: kUserDefaultKeyForWins)
         }
     }
     
     var numOfLoses: Int = 0 {
         didSet {
             self.title = "\(self.numOfWins) W  :  \(self.numOfLoses) L"
-            NSUserDefaults.standardUserDefaults().setInteger(self.numOfLoses, forKey: kUserDefaultKeyForLoses)
+            UserDefaults.standard.set(self.numOfLoses, forKey: kUserDefaultKeyForLoses)
         }
     }
     
@@ -48,10 +48,10 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
         super.viewDidLoad()
         
 //        self.navigationController!.navigationBar.titleTextAttributes = NSDictionary(object: UIColor.lightGrayColor(), forKey: NSForegroundColorAttributeName) as! [String : AnyObject]
-        self.navigationController!.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.lightGrayColor()]
+        self.navigationController!.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.lightGray]
         
-        self.numOfWins = NSUserDefaults.standardUserDefaults().integerForKey(kUserDefaultKeyForWins)
-        self.numOfLoses = NSUserDefaults.standardUserDefaults().integerForKey(kUserDefaultKeyForLoses)
+        self.numOfWins = UserDefaults.standard.integer(forKey: kUserDefaultKeyForWins)
+        self.numOfLoses = UserDefaults.standard.integer(forKey: kUserDefaultKeyForLoses)
         
 
         
@@ -59,17 +59,18 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
         self.gameBoard.players = [Player(name: "You", index: 0, gameBoard: self.gameBoard), Computer(name: "Computer", index: 1, gameBoard: self.gameBoard)]
         self.icons = [UIImage(named: "circle")!, UIImage(named: "cross")!]
         
+        
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        self.boardView.reusableCells.removeAll(keepCapacity: false)
+        self.boardView.reusableCells.removeAll(keepingCapacity: false)
         // Dispose of any resources that can be recreated.
     }
     
     func createBoardView() {
-        let screenBounds = UIScreen.mainScreen().bounds
-        let boardViewFrame = CGRectMake(0.0, 0.0, screenBounds.size.width, screenBounds.size.height)
+        let screenBounds = UIScreen.main.bounds
+        let boardViewFrame = CGRect(x: 0.0, y: 0.0, width: screenBounds.size.width, height: screenBounds.size.height)
         self.boardView = BoardView(frame: boardViewFrame)
         self.boardView.delegate = self
         self.boardView.dataSource = self
@@ -78,23 +79,23 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
 //        self.view.userInteractionEnabled = false
     }
     
-    func scrollViewDidScroll(scrollView: UIScrollView) {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let boardView = scrollView as! BoardView
         boardView.manageCellsAfterScroll()
     }
 
-    func scrollViewWillBeginDragging(scrollView: UIScrollView) {
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
 //        println("offset before dragging  \(self.contentOffsetBase)" + "bounds \(scrollView.bounds)")
     }
     
     
-    func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         let boardView = scrollView as! BoardView
         boardView.setupContentInsets()
     }
     
    
-    func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if decelerate == false {
 //            println("offset for stationary scrollView after dragging \(scrollView.contentOffset)" + "base \(self.contentOffsetBase)")
             let boardView = scrollView as! BoardView
@@ -102,30 +103,30 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
         }
     }
     
-    func setupBoardViewCell(boardView: BoardView, boardCell: BoardCell) {
+    func setupBoardViewCell(_ boardView: BoardView, boardCell: BoardCell) {
         if boardCell.delegate !== self {
                 boardCell.delegate = self
         }
         
         if let gridCell = self.gameBoard[boardCell.coord] {
             if let _ = self.gameBoard.winner {
-                boardCell.button.userInteractionEnabled = true
+                boardCell.button.isUserInteractionEnabled = true
             } else {
-                boardCell.button.userInteractionEnabled = false
+                boardCell.button.isUserInteractionEnabled = false
                 if gridCell === self.lastCell {
                     boardCell.button.backgroundColor = kCellBackgroundColorHighlight
                 }
             }
-            boardCell.button.setBackgroundImage(self.icons[gridCell.player.index], forState: .Normal)
+            boardCell.button.setBackgroundImage(self.icons[gridCell.player.index], for: UIControlState())
 
         } else {
-            boardCell.button.setBackgroundImage(nil, forState: .Normal)
+            boardCell.button.setBackgroundImage(nil, for: UIControlState())
             boardCell.button.backgroundColor = kCellBackgroundColor
         }
 
     }
     
-    func onBoardCellTapped(boardCell: BoardCell) {
+    func onBoardCellTapped(_ boardCell: BoardCell) {
         
         if self.gameBoard.winner != nil {
             self.restart()
@@ -142,28 +143,28 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
         if let lastCell = self.lastCell {
             self.boardView[lastCell.coord]?.button.backgroundColor = kCellBackgroundColor
         }
-        boardCell.button.userInteractionEnabled = false
-        boardCell.button.setBackgroundImage(self.icons[self.gameBoard.indexOfPlayer], forState: .Normal)
+        boardCell.button.isUserInteractionEnabled = false
+        boardCell.button.setBackgroundImage(self.icons[self.gameBoard.indexOfPlayer], for: UIControlState())
         self.lastCell = self.gameBoard.grid[boardCell.coord]
         boardCell.button.backgroundColor = kCellBackgroundColorHighlight
         
         self.gameBoard.currentPlayer.removeUncompletableSeqs()
-        if self.gameBoard.currentPlayer.didPickGridCellAtCoord(boardCell.coord) == .Won {
+        if self.gameBoard.currentPlayer.didPickGridCellAtCoord(boardCell.coord) == .won {
             self.didFindWinner()
             return
         }
         self.gameBoard.numOfRounds += 1
         
-        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)) {
+        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async {
             self.gameBoard.currentPlayer.removeUncompletableSeqs()
             let cellCoordPickedByComputer = (self.gameBoard.currentPlayer as! Computer).cellCoordToPick
             self.gameBoard.addCell(GridCell(coord: cellCoordPickedByComputer, player: self.gameBoard.currentPlayer))
-            dispatch_async(dispatch_get_main_queue()) {
+            DispatchQueue.main.async {
                 
                 if let boardCellPickedByComputer = self.boardView[cellCoordPickedByComputer] {
                   
-                    boardCellPickedByComputer.button.userInteractionEnabled = false
-                    boardCellPickedByComputer.button.setBackgroundImage(self.icons[self.gameBoard.indexOfPlayer], forState: .Normal)
+                    boardCellPickedByComputer.button.isUserInteractionEnabled = false
+                    boardCellPickedByComputer.button.setBackgroundImage(self.icons[self.gameBoard.indexOfPlayer], for: UIControlState())
                     boardCellPickedByComputer.button.backgroundColor = kCellBackgroundColorHighlight
                    
                 }
@@ -173,7 +174,7 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
                 self.boardView[self.lastCell!.coord]?.button.backgroundColor = kCellBackgroundColor
                 self.lastCell = self.gameBoard.grid[cellCoordPickedByComputer]
                 
-                if self.gameBoard.currentPlayer.didPickGridCellAtCoord(cellCoordPickedByComputer) == .Won {
+                if self.gameBoard.currentPlayer.didPickGridCellAtCoord(cellCoordPickedByComputer) == .won {
                     self.didFindWinner()
                     return
                 }
@@ -200,19 +201,19 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
         self.boardView.scrollToShowCellCoordAtCenter(winningCellCoords[winningCellCoords.count / 2]) { _ in
             self.drawALineToConnectWinningCounters { () -> Void in
                 let message = "\(self.gameBoard.currentPlayer.name) Won!"
-                let alert = UIAlertController(title: nil, message: message, preferredStyle: UIAlertControllerStyle.Alert)
-                alert.addAction(UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default, handler: { _ in
+                let alert = UIAlertController(title: nil, message: message, preferredStyle: UIAlertControllerStyle.alert)
+                alert.addAction(UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: { _ in
                     for aColomnOfCells in self.boardView.cells {
                         for boardCell in aColomnOfCells {
-                            boardCell.button.userInteractionEnabled = true
+                            boardCell.button.isUserInteractionEnabled = true
                         }
                     }
                 }))
-                alert.addAction(UIAlertAction(title: "New game", style: UIAlertActionStyle.Default, handler: { _ in
+                alert.addAction(UIAlertAction(title: "New game", style: UIAlertActionStyle.default, handler: { _ in
                     self.restart()
                 }))
 
-                self.presentViewController(alert, animated: true, completion: nil)
+                self.present(alert, animated: true, completion: nil)
             }
         }
     }
@@ -237,20 +238,20 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
         
     }
     
-    func drawALineToConnectWinningCounters(completion: (() -> Void) ) {
+    func drawALineToConnectWinningCounters(_ completion: @escaping (() -> Void) ) {
         let winningCellCoords = self.gameBoard.currentPlayer.winningCellSeq!.cellCoords
         let startCellFrame = self.boardView.getFrameForCellCoord(winningCellCoords.first!)
         let endCellFrame = self.boardView.getFrameForCellCoord(winningCellCoords.last!)
-        let startPoint = CGPointMake(startCellFrame.origin.x + startCellFrame.size.width * 0.5, startCellFrame.origin.y + startCellFrame.size.height * 0.5)
-        let endPoint = CGPointMake(endCellFrame.origin.x + endCellFrame.size.width * 0.5, endCellFrame.origin.y + endCellFrame.size.height * 0.5)
+        let startPoint = CGPoint(x: startCellFrame.origin.x + startCellFrame.size.width * 0.5, y: startCellFrame.origin.y + startCellFrame.size.height * 0.5)
+        let endPoint = CGPoint(x: endCellFrame.origin.x + endCellFrame.size.width * 0.5, y: endCellFrame.origin.y + endCellFrame.size.height * 0.5)
         
         let path = UIBezierPath()
-        path.moveToPoint(startPoint)
-        path.addLineToPoint(endPoint)
+        path.move(to: startPoint)
+        path.addLine(to: endPoint)
         
         let lineLayer = CAShapeLayer()
-        lineLayer.path = path.CGPath
-        lineLayer.strokeColor = kCellBackgroundColorWinning.CGColor
+        lineLayer.path = path.cgPath
+        lineLayer.strokeColor = kCellBackgroundColorWinning.cgColor
         lineLayer.lineWidth = 5.0
         
         let animateStrokeEnd = CABasicAnimation(keyPath: "strokeEnd")
@@ -259,12 +260,12 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
         animateStrokeEnd.toValue = 1.0
         CATransaction.begin()
         CATransaction.setCompletionBlock(completion)
-        lineLayer.addAnimation(animateStrokeEnd, forKey: nil)
+        lineLayer.add(animateStrokeEnd, forKey: nil)
         CATransaction.commit()
         self.boardView.layer.addSublayer(lineLayer)
     }
     
-    @IBAction func onNewButtonTapped(sender: UIBarButtonItem) {
+    @IBAction func onNewButtonTapped(_ sender: UIBarButtonItem) {
         self.restart()
     }
     

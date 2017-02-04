@@ -45,10 +45,10 @@ class InfiniteGobangTests: XCTestCase {
         cellCoordSet2 = [cellCoord0, cellCoord3, cellCoord7]
         cellCoordSet3 = [cellCoord0, cellCoord4, cellCoord8]
         
-        cellCoordArraySorted0 = cellCoordSet0.sort{$0 < $1}
-        cellCoordArraySorted1 = cellCoordSet1.sort{$0 < $1}
-        cellCoordArraySorted2 = cellCoordSet2.sort{$0 < $1}
-        cellCoordArraySorted3 = cellCoordSet3.sort{$0 < $1}
+        cellCoordArraySorted0 = cellCoordSet0.sorted{$0 < $1}
+        cellCoordArraySorted1 = cellCoordSet1.sorted{$0 < $1}
+        cellCoordArraySorted2 = cellCoordSet2.sorted{$0 < $1}
+        cellCoordArraySorted3 = cellCoordSet3.sorted{$0 < $1}
         
         masterCellCoordSet = [cellCoordSet0, cellCoordSet1, cellCoordSet2, cellCoordSet3]
         
@@ -78,7 +78,7 @@ class InfiniteGobangTests: XCTestCase {
     
     func testPerformanceExample() {
         // This is an example of a performance test case.
-        self.measureBlock {
+        self.measure {
             // Put the code you want to measure the time of here.
         }
     }
@@ -131,8 +131,8 @@ class InfiniteGobangTests: XCTestCase {
     }
     
     func testCellNeighborCoords() {
-        let neighborCoordsLower = gameBoard[cellCoord0]!.coord.getNeighborCoords(3, orientation: GridCellSeqOrientation.Horizontal, bound: GridCellSeqBound.Lower)
-        let neighborCoordsUpper = gameBoard[cellCoord0]!.coord.getNeighborCoords(3, orientation: GridCellSeqOrientation.Horizontal, bound: GridCellSeqBound.Upper)
+        let neighborCoordsLower = gameBoard[cellCoord0]!.coord.getNeighborCoords(3, orientation: GridCellSeqOrientation.horizontal, bound: GridCellSeqBound.lower)
+        let neighborCoordsUpper = gameBoard[cellCoord0]!.coord.getNeighborCoords(3, orientation: GridCellSeqOrientation.horizontal, bound: GridCellSeqBound.upper)
         XCTAssertEqual(neighborCoordsLower[0], cellCoord5)
         XCTAssertEqual(neighborCoordsLower[1], CellCoord(indexOfColumn: -2, indexOfRow: 0))
         XCTAssertEqual(neighborCoordsLower[2], CellCoord(indexOfColumn: -3, indexOfRow: 0))
@@ -161,9 +161,9 @@ class InfiniteGobangTests: XCTestCase {
         let gridCellSeq0 = GridCellSeq(seq: [gameBoard[cellCoord0]!, gameBoard[cellCoord1]!], gameBoard: gameBoard)
         let gridCellSeq1 = GridCellSeq(seq: [gameBoard[cellCoord0]!, gameBoard[cellCoord5]!], gameBoard: gameBoard)
         players[0].gridCellSeqs = [gridCellSeq0, gridCellSeq1]
-        XCTAssertEqual(players[0].findGridCellSeq(GridCellSeqOrientation.Horizontal, coord: cellCoord1) === gridCellSeq0, true)
-        XCTAssertEqual(players[0].findGridCellSeq(GridCellSeqOrientation.Horizontal, coord: cellCoord5) === gridCellSeq1, true)
-        XCTAssertEqual(players[0].findGridCellSeq(GridCellSeqOrientation.Horizontal, coord: cellCoord3) == nil, true)
+        XCTAssertEqual(players[0].findGridCellSeq(GridCellSeqOrientation.horizontal, coord: cellCoord1) === gridCellSeq0, true)
+        XCTAssertEqual(players[0].findGridCellSeq(GridCellSeqOrientation.horizontal, coord: cellCoord5) === gridCellSeq1, true)
+        XCTAssertEqual(players[0].findGridCellSeq(GridCellSeqOrientation.horizontal, coord: cellCoord3) == nil, true)
     }
     
     func testAddAndRemoveCell() {
@@ -225,7 +225,7 @@ class InfiniteGobangTests: XCTestCase {
     func testBuildSeq() {
         players[0].gameBoard = gameBoard
         XCTAssertEqual(players[0].gridCellSeqs.count == 0, true)
-        let newSeq0 = players[0].buildSeq(gameBoard[cellCoord0]!, orientation: GridCellSeqOrientation.Horizontal)
+        let newSeq0 = players[0].buildSeq(gameBoard[cellCoord0]!, orientation: GridCellSeqOrientation.horizontal)
         XCTAssertEqual(players[0].gridCellSeqs.count == 1, true)
         XCTAssertEqual(players[0].gridCellSeqs[0] === newSeq0, true)
         XCTAssertEqual(newSeq0!.seq.count == 3, true)
@@ -233,12 +233,12 @@ class InfiniteGobangTests: XCTestCase {
         XCTAssertEqual(newSeq0!.seq[1] === gameBoard[cellCoord0]!, true)
         XCTAssertEqual(newSeq0!.seq[2] === gameBoard[cellCoord1]!, true)
         
-        let newSeq1 = players[0].buildSeq(gameBoard[cellCoord0]!, orientation: GridCellSeqOrientation.DiagonalRight)
+        let newSeq1 = players[0].buildSeq(gameBoard[cellCoord0]!, orientation: GridCellSeqOrientation.diagonalRight)
         XCTAssertEqual(players[0].gridCellSeqs.count == 1, true)
         XCTAssertEqual(players[0].gridCellSeqs[0] === newSeq0, true)
         XCTAssertEqual(newSeq1 == nil, true)
         
-        let newSeq2 = players[0].buildSeq(gameBoard[cellCoord0]!, orientation: GridCellSeqOrientation.DiagonalLeft)
+        let newSeq2 = players[0].buildSeq(gameBoard[cellCoord0]!, orientation: GridCellSeqOrientation.diagonalLeft)
         XCTAssertEqual(players[0].gridCellSeqs.count == 2, true)
         XCTAssertEqual(players[0].gridCellSeqs[1] === newSeq2, true)
         XCTAssertEqual(newSeq2!.seq.count == 2, true)
@@ -251,14 +251,14 @@ class InfiniteGobangTests: XCTestCase {
         let cellCoord11 = CellCoord(indexOfColumn: -4, indexOfRow: 0)
         gameBoard.addCell(GridCell(coord: cellCoord10, player: players.first!))
         gameBoard.addCell(GridCell(coord: cellCoord11, player: players.first!))
-        let newSeq3 = players[0].buildSeq(gameBoard[cellCoord10]!, orientation: GridCellSeqOrientation.Horizontal)
+        let newSeq3 = players[0].buildSeq(gameBoard[cellCoord10]!, orientation: GridCellSeqOrientation.horizontal)
         XCTAssertEqual(players[0].gridCellSeqs.count == 3, true)
         XCTAssertEqual(newSeq3!.seq[0] === gameBoard[cellCoord11]!, true)
         XCTAssertEqual(newSeq3!.seq[1] === gameBoard[cellCoord10]!, true)
         
         
         gameBoard.addCell(GridCell(coord: cellCoord9, player: players.first!))
-        let newSeq4 = players[0].buildSeq(gameBoard[cellCoord9]!, orientation: GridCellSeqOrientation.Horizontal)
+        let newSeq4 = players[0].buildSeq(gameBoard[cellCoord9]!, orientation: GridCellSeqOrientation.horizontal)
         XCTAssertEqual(players[0].gridCellSeqs.count == 2, true)
         XCTAssertEqual(newSeq4 === newSeq0, true)
         XCTAssertEqual(newSeq4!.seq.count == 6, true)

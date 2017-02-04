@@ -9,14 +9,14 @@
 import UIKit
 
 enum Border {
-    case Left
-    case Right
-    case Top
-    case Bottom
+    case left
+    case right
+    case top
+    case bottom
 }
 
 protocol BoardViewDataSource: class {
-    func setupBoardViewCell(boardView: BoardView, boardCell: BoardCell)
+    func setupBoardViewCell(_ boardView: BoardView, boardCell: BoardCell)
 }
 
 final class BoardView: UIScrollView {
@@ -81,11 +81,11 @@ final class BoardView: UIScrollView {
         let numOfColumns = Int(ceil(frame.size.width / kDefaultBoardCellSize))
         let numOfRows = Int(ceil(frame.size.height / kDefaultBoardCellSize))
 
-        self.cells = [[BoardCell]](count: numOfColumns, repeatedValue: [BoardCell](count: numOfRows, repeatedValue: BoardCell(indexOfColumn: 0, indexOfRow: 0, frame: CGRectMake(0.0, 0.0, 0.0, 0.0))))
+        self.cells = [[BoardCell]](repeating: [BoardCell](repeating: BoardCell(indexOfColumn: 0, indexOfRow: 0, frame: CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)), count: numOfRows), count: numOfColumns)
         
         super.init(frame: frame)
-        self.contentSize = CGSizeMake(self.bounds.size.width * 2.0, self.bounds.size.height * 2.0)
-        self.bounds.origin = CGPointMake(self.bounds.size.width * 0.5, self.bounds.size.height * 0.5)
+        self.contentSize = CGSize(width: self.bounds.size.width * 2.0, height: self.bounds.size.height * 2.0)
+        self.bounds.origin = CGPoint(x: self.bounds.size.width * 0.5, y: self.bounds.size.height * 0.5)
         self.backgroundColor = kCellBackgroundColor
         
 // the two options below cause frame drop of 5 fps
@@ -99,7 +99,7 @@ final class BoardView: UIScrollView {
             for j in 0...numOfRows - 1  {
                 let indexOfColumn = i - localIndexOfCenterColumn
                 let indexOfRow = j - localIndexOfCenterRow
-                let cellFrame = CGRectMake(self.bounds.origin.x + CGFloat(i) * kDefaultBoardCellSize, self.bounds.origin.y + CGFloat(numOfRows - 1 - j) * kDefaultBoardCellSize, kDefaultBoardCellSize, kDefaultBoardCellSize)
+                let cellFrame = CGRect(x: self.bounds.origin.x + CGFloat(i) * kDefaultBoardCellSize, y: self.bounds.origin.y + CGFloat(numOfRows - 1 - j) * kDefaultBoardCellSize, width: kDefaultBoardCellSize, height: kDefaultBoardCellSize)
                 self.cells[i][j] = BoardCell(indexOfColumn: indexOfColumn, indexOfRow: indexOfRow, frame: cellFrame)
 
                 self.addSubview(self.cells[i][j])
@@ -128,13 +128,13 @@ final class BoardView: UIScrollView {
     }
     
     
-    func cellForPoint(point: CGPoint) -> BoardCell {
+    func cellForPoint(_ point: CGPoint) -> BoardCell {
         let i = Int((point.x - self.cells[0][0].frame.origin.x) / self.cells[0][0].frame.size.width)
         let j = Int((point.y - self.cells[0][0].frame.origin.y) / self.cells[0][0].frame.size.height)
         return self.cells[i][j]
     }
     
-    func moveCellsBy(dX dX: CGFloat, dY: CGFloat) {
+    func moveCellsBy(dX: CGFloat, dY: CGFloat) {
         for aRowOfBoardCells in self.cells {
             for boardCell in aRowOfBoardCells {
                 boardCell.frame.origin.x += dX
@@ -147,12 +147,12 @@ final class BoardView: UIScrollView {
         var cellToReturn : BoardCell? = nil
         if self.reusableCells.count > 0 {
             cellToReturn = self.reusableCells[0]
-            self.reusableCells.removeAtIndex(0)
+            self.reusableCells.remove(at: 0)
         }
         return cellToReturn
     }
     
-    func addColumnOfCellsAt(localIndexOfColumn localIndexOfColumn: Int) {
+    func addColumnOfCellsAt(localIndexOfColumn: Int) {
         let xOfColumnToAdd: CGFloat
         let indexOfColumn: Int
         switch localIndexOfColumn {
@@ -168,9 +168,9 @@ final class BoardView: UIScrollView {
             indexOfColumn = 0
         }
         var cellsToAdd = [BoardCell]()
-        for (i,indexOfRow) in self.indicesOfRowsForCells.enumerate() {
+        for (i,indexOfRow) in self.indicesOfRowsForCells.enumerated() {
             let boardCellToAdd : BoardCell
-            let frameOfCellToAdd = CGRectMake(xOfColumnToAdd, self.cells[0][i].frame.origin.y, self.cellSize.width, self.cellSize.height)
+            let frameOfCellToAdd = CGRect(x: xOfColumnToAdd, y: self.cells[0][i].frame.origin.y, width: self.cellSize.width, height: self.cellSize.height)
             if let boardCell = self.getResuableCell() {
 //                println("get reusable cell at \(boardCell.indexOfColumn),\(boardCell.indexOfRow)")
                 boardCell.frame = frameOfCellToAdd
@@ -178,7 +178,7 @@ final class BoardView: UIScrollView {
                 boardCell.coord.indexOfRow = indexOfRow
 //                boardCell.button.setTitle("\(boardCell.coord.indexOfColumn),\(boardCell.coord.indexOfRow)", forState: .Normal)
                 boardCell.button.backgroundColor = kCellBackgroundColor
-                boardCell.button.userInteractionEnabled = true
+                boardCell.button.isUserInteractionEnabled = true
                 boardCellToAdd = boardCell
 //                println("put reusable cell at \(boardCell.indexOfColumn),\(boardCell.indexOfRow)")
             } else {
@@ -189,24 +189,27 @@ final class BoardView: UIScrollView {
             self.dataSource!.setupBoardViewCell(self, boardCell:boardCellToAdd)
 //            self.addSubview(boardCellToAdd)
         }
-        self.cells.insert(cellsToAdd, atIndex: localIndexOfColumn)
+        self.cells.insert(cellsToAdd, at: localIndexOfColumn)
     }
     
-    func removeColumnOfCellsAt(localIndexOfColumn localIndexOfColumn: Int) {
+    func removeColumnOfCellsAt(localIndexOfColumn: Int) {
         for boardCell in self.cells[localIndexOfColumn] {
             boardCell.defaultSetup()
             self.reusableCells.append(boardCell)
 //            boardCell.removeFromSuperview()
         }
-        self.cells.removeAtIndex(localIndexOfColumn)
+        self.cells.remove(at: localIndexOfColumn)
 
     }
     
     func removeColumnsOfCellsOutsideOfBounds() {
-        for var i = 0; i < self.numOfColumns; ++i {
-            let firstCell = self.cells[i][0]
+        var numOfColumnsRemoved = 0
+        for i in 0 ..< self.numOfColumns {
+            let indexOfColumn = i - numOfColumnsRemoved
+            let firstCell = self.cells[indexOfColumn][0]
             if firstCell.frame.origin.x >= self.bounds.origin.x + self.bounds.size.width || firstCell.frame.origin.x + firstCell.frame.size.width <= self.bounds.origin.x {
-                self.removeColumnOfCellsAt(localIndexOfColumn: i)
+                self.removeColumnOfCellsAt(localIndexOfColumn: indexOfColumn)
+                numOfColumnsRemoved += 1
 //                println("remove column at \(i)")
             }
         }
@@ -214,7 +217,7 @@ final class BoardView: UIScrollView {
     
 
     
-    func addRowOfCellsAt(localIndexOfRow localIndexOfRow: Int) {
+    func addRowOfCellsAt(localIndexOfRow: Int) {
         let yOfRowToAdd: CGFloat
         let indexOfRow: Int
         switch localIndexOfRow {
@@ -230,9 +233,9 @@ final class BoardView: UIScrollView {
             indexOfRow = 0
         }
         
-       self.cells = self.cells.map { (var aColumnOfCells : [BoardCell]) -> [BoardCell] in
+       self.cells = self.cells.map { (aColumnOfCells : [BoardCell]) -> [BoardCell] in
             let boardCellToAdd : BoardCell
-            let frameOfCellToAdd = CGRectMake(aColumnOfCells[0].frame.origin.x , yOfRowToAdd, self.cellSize.width, self.cellSize.height)
+            let frameOfCellToAdd = CGRect(x: aColumnOfCells[0].frame.origin.x , y: yOfRowToAdd, width: self.cellSize.width, height: self.cellSize.height)
             if let boardCell = self.getResuableCell() {
 //                println("get reusable cell at \(boardCell.indexOfColumn),\(boardCell.indexOfRow)")
                 boardCell.frame = frameOfCellToAdd
@@ -240,7 +243,7 @@ final class BoardView: UIScrollView {
                 boardCell.coord.indexOfRow = indexOfRow
 //                boardCell.button.setTitle("\(boardCell.coord.indexOfColumn),\(boardCell.coord.indexOfRow)", forState: .Normal)
                 boardCell.button.backgroundColor = kCellBackgroundColor
-                boardCell.button.userInteractionEnabled = true
+                boardCell.button.isUserInteractionEnabled = true
                 boardCellToAdd = boardCell
 //                println("put reusable cell at \(boardCell.indexOfColumn),\(boardCell.indexOfRow)")
             } else {
@@ -248,28 +251,34 @@ final class BoardView: UIScrollView {
                 self.addSubview(boardCellToAdd)
             }
 //            self.addSubview(boardCellToAdd)
-            aColumnOfCells.insert(boardCellToAdd, atIndex: localIndexOfRow)
+            var aColumnOfCellsToReturn = aColumnOfCells
+            aColumnOfCellsToReturn.insert(boardCellToAdd, at: localIndexOfRow)
             self.dataSource!.setupBoardViewCell(self, boardCell:boardCellToAdd)
-            return aColumnOfCells
+            return aColumnOfCellsToReturn
         }
     }
     
-    func removeRowOfCellsAt(localIndexOfRow localIndexOfRow: Int) {
-        self.cells = self.cells.map { (var aColumnOfCells: [BoardCell]) -> [BoardCell] in
+    func removeRowOfCellsAt(localIndexOfRow: Int) {
+        self.cells = self.cells.map { (aColumnOfCells: [BoardCell]) -> [BoardCell] in
             aColumnOfCells[localIndexOfRow].defaultSetup()
             self.reusableCells.append(aColumnOfCells[localIndexOfRow])
 //            aColumnOfCells[localIndexOfRow].removeFromSuperview()
-            aColumnOfCells.removeAtIndex(localIndexOfRow)
-            return aColumnOfCells
+            var aColumnOfCellsToReturn = aColumnOfCells
+            aColumnOfCellsToReturn.remove(at: localIndexOfRow)
+            return aColumnOfCellsToReturn
         }
     }
     
     func removeRowsOfCellsOutsideOfBounds() {
-        for var i = 0; i < self.numOfRows; ++i {
-            let firstCell = self.cells[0][i]
+        var numOfRowsRemoved = 0
+        for i in 0 ..< self.numOfRows {
+            print("at \(i) with numOfRows \(self.numOfRows)")
+            let indexOfRow = i - numOfRowsRemoved
+            let firstCell = self.cells[0][indexOfRow]
             if firstCell.frame.origin.y >= self.bounds.origin.y + self.bounds.size.height || firstCell.frame.origin.y + firstCell.frame.size.height <= self.bounds.origin.y {
-                self.removeRowOfCellsAt(localIndexOfRow: i)
-//                println("remove row at \(i)")
+                self.removeRowOfCellsAt(localIndexOfRow: indexOfRow)
+                numOfRowsRemoved += 1
+                print("remove row at \(i)")
             }
         }
     }
@@ -299,7 +308,7 @@ final class BoardView: UIScrollView {
     }
     
     func setupContentInsets() {
-        let bufferSize = CGSizeMake(self.cellSize.width * 2.0, self.cellSize.height * 2.0)
+        let bufferSize = CGSize(width: self.cellSize.width * 2.0, height: self.cellSize.height * 2.0)
         if self.contentOffset.x <= bufferSize.width {
             self.contentInset.left += bufferSize.width
         }
@@ -314,7 +323,7 @@ final class BoardView: UIScrollView {
         }
     }
     
-    func scrollToShowCellCoordAtCenter(coord: CellCoord, completion: (() -> Void)? ) {
+    func scrollToShowCellCoordAtCenter(_ coord: CellCoord, completion: (() -> Void)? ) {
 //    func scrollToShowCellCoordAtCenter(coord: CellCoord) {
         let centerCell = self.cells[self.numOfColumns / 2][self.numOfRows / 2]
         let deltaX = (CGFloat)(coord.indexOfColumn - centerCell.coord.indexOfColumn ) * centerCell.frame.size.width
@@ -323,7 +332,7 @@ final class BoardView: UIScrollView {
         let offsetY = deltaY + self.bounds.origin.y
         CATransaction.begin()
         CATransaction.setCompletionBlock(completion)
-        self.setContentOffset(CGPointMake(offsetX, offsetY), animated: true)
+        self.setContentOffset(CGPoint(x: offsetX, y: offsetY), animated: true)
         CATransaction.commit()
         
         //Customized animation dosen't look right, don't understand why
@@ -334,11 +343,11 @@ final class BoardView: UIScrollView {
 //        }
     }
     
-    func getFrameForCellCoord(coord: CellCoord) -> CGRect {
+    func getFrameForCellCoord(_ coord: CellCoord) -> CGRect {
         let firstCell = self.cells[0][0]
         let deltaX = (CGFloat)(coord.indexOfColumn - firstCell.coord.indexOfColumn ) * firstCell.frame.size.width
         let deltaY = (CGFloat)(firstCell.coord.indexOfRow - coord.indexOfRow ) * firstCell.frame.size.height
-        return CGRectMake(firstCell.frame.origin.x + deltaX, firstCell.frame.origin.y + deltaY, firstCell.frame.size.width, firstCell.frame.size.height)
+        return CGRect(x: firstCell.frame.origin.x + deltaX, y: firstCell.frame.origin.y + deltaY, width: firstCell.frame.size.width, height: firstCell.frame.size.height)
     }
     
 
