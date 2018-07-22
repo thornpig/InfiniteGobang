@@ -12,9 +12,11 @@ let kCountOfSeqToWin = 5
 
 final class GameBoard {
     
+    var numOfRounds: Int = 1
     var players = [Player]()
-
-    var numOfRounds: Int = 0
+    var winner: Player? = nil
+    var grid: [CellCoord: GridCell]
+    
     var indexOfPlayer: Int {
         get {
            return (self.numOfRounds - 1) % 2
@@ -26,7 +28,6 @@ final class GameBoard {
         }
     }
     
-    var grid: [CellCoord: GridCell]
     
     init() {
         grid = [:]
@@ -38,6 +39,27 @@ final class GameBoard {
     
     subscript(coords: [CellCoord]) -> [GridCell?] {
         return coords.map{return grid[$0]}
+    }
+    
+    func addCell(_ cell: GridCell) {
+        self.grid[cell.coord] = cell
+        cell.player.cellCoords.insert(cell.coord)
+    }
+    
+    func removeCellAtCoord(_ coord: CellCoord) {
+        if let gameCell = self.grid[coord] {
+            gameCell.player.cellCoords.remove(coord)
+            self.grid[coord] = nil
+        }
+    }
+    
+    func reset() {
+        self.numOfRounds = 1
+        self.winner = nil
+        self.grid = [:]
+        for player in self.players {
+            player.reset()
+        }
     }
 }
 

@@ -8,77 +8,102 @@
 
 import UIKit
 
-var numOfRounds = 0
+
+let kUserDefaultKeyForWins = "numOfWins"
+let kUserDefaultKeyForLoses = "numOfLoses"
 
 class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewDataSource, BoardCellDelegate {
     
-    var boardView: BoardView!
+    
+    @IBOutlet weak var newButton: UIBarButtonItem!
+    
     var gameBoard: GameBoard!
-    var label: UILabel!
-    var restartButton: UIButton!
+    var boardView: BoardView!
+    var mapView: BoardMapView!
 
-    var cellColors: [UIColor]!
     var icons: [UIImage]!
     var lastCell: GridCell?
+    
+    var numOfWins: Int = 0 {
+        didSet {
+            self.title = "\(self.numOfWins) W  :  \(self.numOfLoses) L"
+            UserDefaults.standard.set(self.numOfWins, forKey: kUserDefaultKeyForWins)
+        }
+    }
+    
+    var numOfLoses: Int = 0 {
+        didSet {
+            self.title = "\(self.numOfWins) W  :  \(self.numOfLoses) L"
+            UserDefaults.standard.set(self.numOfLoses, forKey: kUserDefaultKeyForLoses)
+        }
+    }
+    
 
     override func loadView() {
         super.loadView()
         self.createBoardView()
-//        self.label = UILabel(frame: CGRectMake(10, boardViewFrame.size.height + 10, 150, 30))
-//        self.view.addSubview(self.label)
-//        self.label.hidden = true
-//        
-//        self.restartButton = UIButton(frame: CGRectMake(200, boardViewFrame.size.height + 10, 100, 30))
-//        self.restartButton.backgroundColor = UIColor.blackColor()
-//        self.restartButton.setTitle("Restart", forState: UIControlState.Normal)
-//        self.restartButton.addTarget(self, action: "onRestartButtonTapped", forControlEvents: .TouchUpInside)
-//        self.view.addSubview(self.restartButton)
-        
+        //self.createMapView()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+//        self.navigationController!.navigationBar.titleTextAttributes = NSDictionary(object: UIColor.lightGrayColor(), forKey: NSForegroundColorAttributeName) as! [String : AnyObject]
+        self.navigationController!.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.lightGray]
+        
+        self.numOfWins = UserDefaults.standard.integer(forKey: kUserDefaultKeyForWins)
+        self.numOfLoses = UserDefaults.standard.integer(forKey: kUserDefaultKeyForLoses)
+        
+
+        
         self.gameBoard = GameBoard()
-        self.gameBoard.players = [Player(name: "Zack", index: 0, gameBoard: self.gameBoard), Computer(name: "Computer", index: 1, gameBoard: self.gameBoard)]
-        self.cellColors = [UIColor.greenColor(), UIColor.blueColor()]
+        self.gameBoard.players = [Player(name: "You", index: 0, gameBoard: self.gameBoard), Computer(name: "Computer", index: 1, gameBoard: self.gameBoard)]
         self.icons = [UIImage(named: "circle")!, UIImage(named: "cross")!]
         
+        
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        self.boardView.reusableCells.removeAll(keepCapacity: false)
+        self.boardView.reusableCells.removeAll(keepingCapacity: false)
         // Dispose of any resources that can be recreated.
     }
     
     func createBoardView() {
-        let screenBounds = UIScreen.mainScreen().bounds
-        let boardViewFrame = CGRectMake(0.0, 0.0, screenBounds.size.width, screenBounds.size.height)
+        let screenBounds = UIScreen.main.bounds
+        let boardViewFrame = CGRect(x: 0.0, y: 0.0, width: screenBounds.size.width, height: screenBounds.size.height)
         self.boardView = BoardView(frame: boardViewFrame)
         self.boardView.delegate = self
         self.boardView.dataSource = self
         self.boardView.clearsContextBeforeDrawing = false
         self.view.addSubview(self.boardView)
+//        self.view.userInteractionEnabled = false
     }
     
-    func scrollViewDidScroll(scrollView: UIScrollView) {
+    func createMapView() {
+        let mapViewFrame = CGRect(x: view.frame.size.width - 100.0, y: view.frame.size.height - 100.0, width: 100.0, height: 100.0)
+        mapView = BoardMapView(frame: mapViewFrame)
+        mapView.backgroundColor = UIColor.red
+        view.addSubview(mapView)
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let boardView = scrollView as! BoardView
         boardView.manageCellsAfterScroll()
     }
 
-    func scrollViewWillBeginDragging(scrollView: UIScrollView) {
+    func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
 //        println("offset before dragging  \(self.contentOffsetBase)" + "bounds \(scrollView.bounds)")
     }
     
     
-    func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         let boardView = scrollView as! BoardView
         boardView.setupContentInsets()
     }
     
    
-    func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if decelerate == false {
 //            println("offset for stationary scrollView after dragging \(scrollView.contentOffset)" + "base \(self.contentOffsetBase)")
             let boardView = scrollView as! BoardView
@@ -86,89 +111,82 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
         }
     }
     
-    func setupBoardViewCell(boardView: BoardView, boardCell: BoardCell) {
+    func setupBoardViewCell(_ boardView: BoardView, boardCell: BoardCell) {
         if boardCell.delegate !== self {
                 boardCell.delegate = self
         }
         
-
-
-        
         if let gridCell = self.gameBoard[boardCell.coord] {
-//            boardCell.button.backgroundColor = self.cellColors[gridCell.player!.index]
-            if gridCell === self.lastCell {
-               boardCell.layer.borderColor = UIColor.greenColor().CGColor
-               boardCell.layer.borderWidth = 1.0
+            if let _ = self.gameBoard.winner {
+                boardCell.button.isUserInteractionEnabled = true
             } else {
-                boardCell.layer.borderColor = UIColor.yellowColor().CGColor
-                boardCell.layer.borderWidth = 0.5
+                boardCell.button.isUserInteractionEnabled = false
+                if gridCell === self.lastCell {
+                    boardCell.button.backgroundColor = kCellBackgroundColorHighlight
+                }
             }
-            boardCell.button.setBackgroundImage(self.icons[gridCell.player!.index], forState: .Normal)
-            boardCell.button.userInteractionEnabled = false
+            boardCell.button.setBackgroundImage(self.icons[gridCell.player.index], for: UIControlState())
+
         } else {
-            boardCell.button.setBackgroundImage(nil, forState: .Normal)
-            boardCell.layer.borderColor = UIColor.yellowColor().CGColor
-            boardCell.layer.borderWidth = 0.5
+            boardCell.button.setBackgroundImage(nil, for: UIControlState())
+            boardCell.button.backgroundColor = kCellBackgroundColor
         }
 
     }
     
-    func onBoardCellTapped(boardCell: BoardCell) {
+    func onBoardCellTapped(_ boardCell: BoardCell) {
         
-        if self.gameBoard.numOfRounds > 0 && (self.gameBoard.currentPlayer as? Computer == nil) {
+        if self.gameBoard.winner != nil {
+            self.restart()
             return
         }
         
-        self.gameBoard.numOfRounds += 1
+        if self.gameBoard.numOfRounds > 1 && self.gameBoard.currentPlayer is Computer {
+            return
+        }
 
         self.gameBoard.grid[boardCell.coord] = GridCell(coord: boardCell.coord, player: self.gameBoard.currentPlayer)
+        self.gameBoard.addCell(GridCell(coord: boardCell.coord, player: self.gameBoard.currentPlayer))
 
         if let lastCell = self.lastCell {
-            self.boardView[lastCell.coord]?.layer.borderColor = UIColor.yellowColor().CGColor
-            self.boardView[lastCell.coord]?.layer.borderWidth = 0.5
+            self.boardView[lastCell.coord]?.button.backgroundColor = kCellBackgroundColor
         }
-        boardCell.button.userInteractionEnabled = false
-//        boardCell.button.backgroundColor = self.cellColors[self.gameBoard.indexOfPlayer]
-        boardCell.button.setBackgroundImage(self.icons[self.gameBoard.indexOfPlayer], forState: .Normal)
-        boardCell.layer.borderColor = UIColor.greenColor().CGColor
-        boardCell.layer.borderWidth = 1.0
+        boardCell.button.isUserInteractionEnabled = false
+        boardCell.button.setBackgroundImage(self.icons[self.gameBoard.indexOfPlayer], for: UIControlState())
         self.lastCell = self.gameBoard.grid[boardCell.coord]
+        boardCell.button.backgroundColor = kCellBackgroundColorHighlight
         
         self.gameBoard.currentPlayer.removeUncompletableSeqs()
-        if self.gameBoard.currentPlayer.didPickGridCellAtCoord(boardCell.coord) == .Won {
+        if self.gameBoard.currentPlayer.didPickGridCellAtCoord(boardCell.coord) == .won {
             self.didFindWinner()
-        } else {
-            dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)) {
-                self.gameBoard.numOfRounds += 1
-                self.gameBoard.currentPlayer.removeUncompletableSeqs()
-                let cellCoordPickedByComputer = (self.gameBoard.currentPlayer as! Computer).cellCoordToPick
-                self.gameBoard.grid[cellCoordPickedByComputer] = GridCell(coord: cellCoordPickedByComputer, player: self.gameBoard.currentPlayer)
-                dispatch_async(dispatch_get_main_queue()) {
-                    if let boardCellPickedByComputer = self.boardView[cellCoordPickedByComputer] {
-                      
-                        boardCellPickedByComputer.button.userInteractionEnabled = false
-//                        boardCellPickedByComputer.button.backgroundColor = self.cellColors[self.gameBoard.indexOfPlayer]
-                        boardCellPickedByComputer.button.setBackgroundImage(self.icons[self.gameBoard.indexOfPlayer], forState: .Normal)
-                        boardCellPickedByComputer.layer.borderColor = UIColor.greenColor().CGColor
-                        boardCellPickedByComputer.layer.borderWidth = 1.0
-                       
-                    }
-                    
-                    let centerCell = self.boardView.cells[self.boardView.numOfColumns / 2][self.boardView.numOfRows / 2]
-                    let deltaX = (CGFloat)(cellCoordPickedByComputer.indexOfColumn - centerCell.coord.indexOfColumn ) * centerCell.frame.size.width
-                    let deltaY = (CGFloat)(centerCell.coord.indexOfRow - cellCoordPickedByComputer.indexOfRow ) * centerCell.frame.size.height
-                    let offsetX = deltaX + self.boardView.bounds.origin.x
-                    let offsetY = deltaY + self.boardView.bounds.origin.y
-                    self.boardView.setContentOffset(CGPointMake(offsetX, offsetY), animated: true)
-                    
-                    self.boardView[self.lastCell!.coord]?.layer.borderColor = UIColor.yellowColor().CGColor
-                    self.boardView[self.lastCell!.coord]?.layer.borderWidth = 0.5
-                    self.lastCell = self.gameBoard.grid[cellCoordPickedByComputer]
-                    
-                    if self.gameBoard.currentPlayer.didPickGridCellAtCoord(cellCoordPickedByComputer) == .Won {
-                        self.didFindWinner()
-                    }
+            return
+        }
+        self.gameBoard.numOfRounds += 1
+        
+        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async {
+            self.gameBoard.currentPlayer.removeUncompletableSeqs()
+            let cellCoordPickedByComputer = (self.gameBoard.currentPlayer as! Computer).cellCoordToPick
+            self.gameBoard.addCell(GridCell(coord: cellCoordPickedByComputer, player: self.gameBoard.currentPlayer))
+            DispatchQueue.main.async {
+                
+                if let boardCellPickedByComputer = self.boardView[cellCoordPickedByComputer] {
+                  
+                    boardCellPickedByComputer.button.isUserInteractionEnabled = false
+                    boardCellPickedByComputer.button.setBackgroundImage(self.icons[self.gameBoard.indexOfPlayer], for: UIControlState())
+                    boardCellPickedByComputer.button.backgroundColor = kCellBackgroundColorHighlight
+                   
                 }
+                
+                self.boardView.scrollToShowCellCoordAtCenter(cellCoordPickedByComputer, completion: nil)
+                
+                self.boardView[self.lastCell!.coord]?.button.backgroundColor = kCellBackgroundColor
+                self.lastCell = self.gameBoard.grid[cellCoordPickedByComputer]
+                
+                if self.gameBoard.currentPlayer.didPickGridCellAtCoord(cellCoordPickedByComputer) == .won {
+                    self.didFindWinner()
+                    return
+                }
+                self.gameBoard.numOfRounds += 1
             }
         }
         
@@ -176,30 +194,89 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
     }
     
     func didFindWinner() {
-        let message = "\(self.gameBoard.currentPlayer.name) Won!"
-//        self.label.text = message
-//        self.label.hidden = false
-        let alert = UIAlertController(title: nil, message: message, preferredStyle: UIAlertControllerStyle.Alert)
-        alert.addAction(UIAlertAction(title: "Play Again!", style: UIAlertActionStyle.Default, handler: { action in
-            self.onRestartButtonTapped()
-        }))
-        self.presentViewController(alert, animated: true, completion: nil)
-       
+        
+        if let lastBoardCell = self.boardView[self.lastCell!.coord] {
+           lastBoardCell.button.backgroundColor = kCellBackgroundColor
+        }
+        self.lastCell = nil
+        
+
+        self.gameBoard.winner = self.gameBoard.currentPlayer
+        self.updateHistoryRecord()
+        let winningCellCoords = self.gameBoard.currentPlayer.winningCellSeq!.cellCoords
+//        self.boardView.scrollToShowCellCoordAtCenter(winningCellCoords[winningCellCoords.count / 2])
+        
+        self.boardView.scrollToShowCellCoordAtCenter(winningCellCoords[winningCellCoords.count / 2]) {
+            self.drawALineToConnectWinningCounters { () -> Void in
+                let message = "\(self.gameBoard.currentPlayer.name) Won!"
+                let alert = UIAlertController(title: nil, message: message, preferredStyle: UIAlertControllerStyle.alert)
+                alert.addAction(UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: { _ in
+                    for aColomnOfCells in self.boardView.cells {
+                        for boardCell in aColomnOfCells {
+                            boardCell.button.isUserInteractionEnabled = true
+                        }
+                    }
+                }))
+                alert.addAction(UIAlertAction(title: "New game", style: UIAlertActionStyle.default, handler: { _ in
+                    self.restart()
+                }))
+
+                self.present(alert, animated: true, completion: nil)
+            }
+        }
     }
     
-    func onRestartButtonTapped() {
-        
-        self.gameBoard.grid = [:]
-        self.gameBoard.numOfRounds = 0
-        self.gameBoard.players[0].gridCellSeqs = []
-        self.gameBoard.players[1].gridCellSeqs = []
+    func updateHistoryRecord() {
+        guard let winner = self.gameBoard.winner else { return }
+        if winner is Computer {
+            self.numOfLoses += 1
+        } else {
+            self.numOfWins += 1
+        }
+
+    }
+    
+    func restart() {
+        self.gameBoard.reset()
         self.boardView.removeFromSuperview()
         self.boardView = nil
         self.createBoardView()
-//        self.label.hidden = true
         
         print("Restart")
+        
+    }
+    
+    func drawALineToConnectWinningCounters(_ completion: @escaping (() -> Void) ) {
+        let winningCellCoords = self.gameBoard.currentPlayer.winningCellSeq!.cellCoords
+        let startCellFrame = self.boardView.getFrameForCellCoord(winningCellCoords.first!)
+        let endCellFrame = self.boardView.getFrameForCellCoord(winningCellCoords.last!)
+        let startPoint = CGPoint(x: startCellFrame.origin.x + startCellFrame.size.width * 0.5, y: startCellFrame.origin.y + startCellFrame.size.height * 0.5)
+        let endPoint = CGPoint(x: endCellFrame.origin.x + endCellFrame.size.width * 0.5, y: endCellFrame.origin.y + endCellFrame.size.height * 0.5)
+        
+        let path = UIBezierPath()
+        path.move(to: startPoint)
+        path.addLine(to: endPoint)
+        
+        let lineLayer = CAShapeLayer()
+        lineLayer.path = path.cgPath
+        lineLayer.strokeColor = kCellBackgroundColorWinning.cgColor
+        lineLayer.lineWidth = 5.0
+        
+        let animateStrokeEnd = CABasicAnimation(keyPath: "strokeEnd")
+        animateStrokeEnd.duration = 1.0
+        animateStrokeEnd.fromValue = 0.0
+        animateStrokeEnd.toValue = 1.0
+        CATransaction.begin()
+        CATransaction.setCompletionBlock(completion)
+        lineLayer.add(animateStrokeEnd, forKey: nil)
+        CATransaction.commit()
+        self.boardView.layer.addSublayer(lineLayer)
+    }
+    
+    @IBAction func onNewButtonTapped(_ sender: UIBarButtonItem) {
+        self.restart()
     }
     
     
 }
+

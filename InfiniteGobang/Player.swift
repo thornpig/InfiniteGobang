@@ -9,18 +9,20 @@
 import Foundation
 
 enum PlayerStatus {
-    case Won
-    case WillWin
-    case Uncertain
+    case won
+    case willWin
+    case uncertain
 }
 
 class Player {
     
     let name: String
     let index: Int
+    weak var gameBoard: GameBoard?
     var lastCellCoord: CellCoord?
     var gridCellSeqs = [GridCellSeq]()
-    weak var gameBoard: GameBoard?
+    var cellCoords = Set<CellCoord>()
+    var winningCellSeq: GridCellSeq?
     
     init(name:String, index: Int) {
         self.name = name
@@ -32,8 +34,28 @@ class Player {
         self.gameBoard = gameBoard
     }
     
-    func findGridCellSeq(oritentation: GridCellSeqOrientation, coord: CellCoord) -> GridCellSeq? {
-        let index = self.gridCellSeqs.indexOf{$0.orientation == oritentation && $0.seq.contains{$0.coord == coord}}
+    var opponent: Player {
+        get {
+            return self.gameBoard!.players.filter{$0 !== self}.first!
+        }
+    }
+    
+    var availableNeighborCellCoords: Set<CellCoord> {
+        get {
+            var resultCoords = Set<CellCoord>()
+            for coord in self.cellCoords {
+                for neighborCoord in coord.allNeighborCoords {
+                    if self.gameBoard![neighborCoord] == nil {
+                        resultCoords.insert(neighborCoord)
+                    }
+                }
+            }
+            return resultCoords
+        }
+    }
+    
+    func findGridCellSeq(_ oritentation: GridCellSeqOrientation, coord: CellCoord) -> GridCellSeq? {
+        let index = self.gridCellSeqs.index{$0.orientation == oritentation && $0.seq.contains{$0.coord == coord}}
         if let index = index {
             return self.gridCellSeqs[index]
         } else {
@@ -41,7 +63,7 @@ class Player {
         }
     }
     
-    func didPickGridCellAtCoord(coord: CellCoord) -> PlayerStatus {
+    func didPickGridCellAtCoord(_ coord: CellCoord) -> PlayerStatus {
         self.lastCellCoord = coord
 //        self.removeUnWinnableSeqs()
         let gridCell = self.gameBoard![coord]!
@@ -50,11 +72,12 @@ class Player {
             let newSeq = self.buildSeq(gridCell, orientation: oritentation)
             if let newSeq = newSeq {
                 switch newSeq.status {
-                case .Uncompletable:
-                    self.gridCellSeqs.removeAtIndex(self.gridCellSeqs.indexOf{$0 === newSeq}!)
-                case .Completed:
-                    return .Won
-                case .WillCompleteAfterAddingOneCell:
+                case .uncompletable:
+                    self.gridCellSeqs.remove(at: self.gridCellSeqs.index{$0 === newSeq}!)
+                case .completed:
+                    self.winningCellSeq = newSeq
+                    return .won
+                case .willCompleteAfterAddingOneCell:
                     countOfGridCellSeqsThatWillCompleteAfterAddingOneCell += 1
                 default:
                     break
@@ -62,13 +85,13 @@ class Player {
             }
         }
         if countOfGridCellSeqsThatWillCompleteAfterAddingOneCell >= 2 {
-            return .WillWin
+            return .willWin
         } else {
-            return .Uncertain
+            return .uncertain
         }
     }
     
-    func tryGridCellAtCoord(coord: CellCoord) -> Bool {
+    func tryGridCellAtCoord(_ coord: CellCoord) -> Bool {
         if let _ = self.gameBoard!.grid[coord] {
             return false
         }
@@ -81,7 +104,7 @@ class Player {
         }
         var result: Bool
         switch self.didPickGridCellAtCoord(coord) {
-        case .Won, .WillWin:
+        case .won, .willWin:
             result = true
         default:
             result = false
@@ -92,7 +115,7 @@ class Player {
         return result
     }
     
-    func tryCellCoordsAround(coord: CellCoord, offset: Int) -> CellCoord? {
+    func tryCellCoordsAround(_ coord: CellCoord, offset: Int) -> CellCoord? {
         let cellCoords = coord.getNeighborCoords(offset)
         for cellCoord in cellCoords {
             if self.tryGridCellAtCoord(cellCoord) {
@@ -102,16 +125,25 @@ class Player {
         return nil
     }
     
+    func tryNeighborCellCoords() -> CellCoord? {
+        for cellCoord in self.availableNeighborCellCoords {
+            if self.tryGridCellAtCoord(cellCoord) {
+                return cellCoord
+            }
+        }
+        return nil
+    }
+    
     func removeUncompletableSeqs() {
         for gridCellSeq in self.gridCellSeqs {
-            if gridCellSeq.status == GridCellSeqStatus.Uncompletable {
-                self.gridCellSeqs.removeAtIndex(self.gridCellSeqs.indexOf{$0 === gridCellSeq}!)
+            if gridCellSeq.status == GridCellSeqStatus.uncompletable {
+                self.gridCellSeqs.remove(at: self.gridCellSeqs.index{$0 === gridCellSeq}!)
             }
         }
     }
     
     
-    func buildSeq(gridCell: GridCell, orientation: GridCellSeqOrientation) -> GridCellSeq? {
+    func buildSeq(_ gridCell: GridCell, orientation: GridCellSeqOrientation) -> GridCellSeq? {
         
         var newSeq = GridCellSeq(seq: [], gameBoard: self.gameBoard!)
         let neighborCoords = gridCell.coord.neighborCoords[orientation]!
@@ -137,9 +169,9 @@ class Player {
                 if let upperNeighborSeq = upperNeighborSeq {
                     if newSeq.seq.isEmpty == false {
                         upperNeighborSeq.connectWithSeq(newSeq)
-                        self.gridCellSeqs.removeAtIndex(self.gridCellSeqs.indexOf{$0 === newSeq}!)
+                        self.gridCellSeqs.remove(at: self.gridCellSeqs.index{$0 === newSeq}!)
                     } else {
-                        upperNeighborSeq.seq.insert(gridCell, atIndex: 0)
+                        upperNeighborSeq.seq.insert(gridCell, at: 0)
                     }
                     newSeq = upperNeighborSeq
                 } else {
@@ -158,7 +190,12 @@ class Player {
         } else {
             return nil
         }
-        
-        
+    }
+    
+    func reset() {
+        self.lastCellCoord = nil
+        self.gridCellSeqs = []
+        self.cellCoords = []
+        self.winningCellSeq = nil
     }
 }

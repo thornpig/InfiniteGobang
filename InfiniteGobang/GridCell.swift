@@ -12,13 +12,12 @@ import Foundation
 class GridCell {
     
     let coord: CellCoord
-    var player:Player? = nil
+    var player:Player
     
     init(coord: CellCoord, player: Player) {
         self.coord = coord
         self.player = player
     }
-    
 
 }
 

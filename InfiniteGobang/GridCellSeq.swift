@@ -9,26 +9,26 @@
 import Foundation
 
 enum GridCellSeqOrientation: Int {
-    case Horizontal = 999999
-    case Vertical = 0
-    case DiagonalLeft = 1
-    case DiagonalRight = -1
-    static let allValues = [Horizontal, Vertical, DiagonalLeft, DiagonalRight]
+    case horizontal = 999999
+    case vertical = 0
+    case diagonalLeft = 1
+    case diagonalRight = -1
+    static let allValues = [horizontal, vertical, diagonalLeft, diagonalRight]
 }
 
 enum GridCellSeqBound {
-    case Lower
-    case Upper
-    static let allValues = [Lower, Upper]
+    case lower
+    case upper
+    static let allValues = [lower, upper]
 }
 
 enum GridCellSeqStatus {
-    case Completed
-    case CompleteAfterAddingOneCell
-    case WillComplete
-    case WillCompleteAfterAddingOneCell
-    case Completable
-    case Uncompletable
+    case completed
+    case completeAfterAddingOneCell
+    case willComplete
+    case willCompleteAfterAddingOneCell
+    case completable
+    case uncompletable
 }
 
 
@@ -39,12 +39,12 @@ class GridCellSeq {
     weak var gameBoard: GameBoard?
     
     init(seq: [GridCell]) {
-        self.seq = seq.sort{$0.coord < $1.coord}
+        self.seq = seq.sorted{$0.coord < $1.coord}
     }
     
     convenience init(seq: [GridCell] , gameBoard: GameBoard) {
         self.init(seq: seq)
-        self.seq = seq.sort{$0.coord < $1.coord}
+        self.seq = seq.sorted{$0.coord < $1.coord}
         self.gameBoard = gameBoard
     }
     
@@ -52,34 +52,33 @@ class GridCellSeq {
         get {
             switch (self.seq[0].coord.indexOfColumn, self.seq[0].coord.indexOfRow, self.seq[1].coord.indexOfColumn, self.seq[1].coord.indexOfRow) {
             case let (x0, _, x1, _) where x0 == x1:
-                return .Vertical
-            case let (x0, y0, x1, y1) where (y0 - y1) / (x0 - x1) == GridCellSeqOrientation.DiagonalLeft.rawValue:
-                return .DiagonalLeft
-            case let (x0, y0, x1, y1) where (y0 - y1) / (x0 - x1) == GridCellSeqOrientation.DiagonalRight.rawValue:
-                return .DiagonalRight
+                return .vertical
+            case let (x0, y0, x1, y1) where (y0 - y1) / (x0 - x1) == GridCellSeqOrientation.diagonalLeft.rawValue:
+                return .diagonalLeft
+            case let (x0, y0, x1, y1) where (y0 - y1) / (x0 - x1) == GridCellSeqOrientation.diagonalRight.rawValue:
+                return .diagonalRight
             default :
-                return .Horizontal
+                return .horizontal
             }
         }
     }
     
-    
-    var refCoord: CellCoord {
+    var cellCoords: [CellCoord] {
         get {
-            switch self.orientation {
-            case .Horizontal:
-                return CellCoord(indexOfColumn: 0, indexOfRow: 0)
-            default:
-                return CellCoord(indexOfColumn: self.seq[0].coord.indexOfColumn - self.orientation.rawValue * self.seq[0].coord.indexOfRow,indexOfRow: 0)
+            var coords = [CellCoord]()
+            for gridCell in self.seq {
+                coords.append(gridCell.coord)
             }
+            return coords
         }
     }
+    
     
     var neighborCoords: [CellCoord] {
         get {
            var coords = [CellCoord]()
-           coords.append(self.seq.first!.coord.getNeighborCoords(1, orientation: self.orientation, bound: .Lower).first!)
-           coords.append(self.seq.last!.coord.getNeighborCoords(1, orientation: self.orientation, bound: .Upper).first!)
+           coords.append(self.seq.first!.coord.getNeighborCoords(1, orientation: self.orientation, bound: .lower).first!)
+           coords.append(self.seq.last!.coord.getNeighborCoords(1, orientation: self.orientation, bound: .upper).first!)
            return coords
         }
     }
@@ -108,8 +107,8 @@ class GridCellSeq {
             
             var coordsDict = [CellCoord: Int]()
             
-            let lowerNeighborCoords = self.seq.first!.coord.getNeighborCoords(3, orientation: self.orientation, bound: .Lower)
-            let upperNeighborCoords = self.seq.last!.coord.getNeighborCoords(3, orientation: self.orientation, bound: .Upper)
+            let lowerNeighborCoords = self.seq.first!.coord.getNeighborCoords(3, orientation: self.orientation, bound: .lower)
+            let upperNeighborCoords = self.seq.last!.coord.getNeighborCoords(3, orientation: self.orientation, bound: .upper)
             let lowerNeighbors = self.gameBoard![lowerNeighborCoords]
             let upperNeighbors = self.gameBoard![upperNeighborCoords]
             
@@ -175,21 +174,21 @@ class GridCellSeq {
     var status: GridCellSeqStatus {
         get {
             
-            if self.seq.count == kCountOfSeqToWin  {
-                return .Completed
+            if self.seq.count >= kCountOfSeqToWin  {
+                return .completed
             } else if self.effectiveCount == kCountOfSeqToWin {
-                return .WillComplete
+                return .willComplete
             } else if self.winningCoordsDict.count > 0 {
 //                for (_, numOfCells) in self.winningCoordsDict {
 //                    if numOfCells == kCountOfSeqToWin {
 //                        return .CompleteAfterAddingOneCell
 //                    }
 //                }
-                return .WillCompleteAfterAddingOneCell
+                return .willCompleteAfterAddingOneCell
             } else if self.isCompletable == true {
-                return .Completable
+                return .completable
             } else {
-                return .Uncompletable
+                return .uncompletable
             }
         }
     }
@@ -205,10 +204,10 @@ class GridCellSeq {
                 
                 let numOfLowerNeighbors = i
                 if numOfLowerNeighbors > 0 {
-                    let lowerNeighborCoords = self.seq.first!.coord.getNeighborCoords(numOfLowerNeighbors, orientation: self.orientation, bound: .Lower)
+                    let lowerNeighborCoords = self.seq.first!.coord.getNeighborCoords(numOfLowerNeighbors, orientation: self.orientation, bound: .lower)
                     for coord in lowerNeighborCoords {
                         if let gridCell = self.gameBoard![coord] {
-                            if gridCell.player !== self.seq.first!.player! {
+                            if gridCell.player !== self.seq.first!.player {
                                 continue OuterLoop
                             }
                         }
@@ -217,10 +216,10 @@ class GridCellSeq {
                 
                 let numOfUpperNeighbors = numOfCellsNeededToWin - numOfLowerNeighbors
                 if numOfUpperNeighbors > 0 {
-                    let upperNeighborCoords = self.seq.last!.coord.getNeighborCoords(numOfUpperNeighbors, orientation: self.orientation, bound: .Upper)
+                    let upperNeighborCoords = self.seq.last!.coord.getNeighborCoords(numOfUpperNeighbors, orientation: self.orientation, bound: .upper)
                     for coord in upperNeighborCoords {
                         if let gridCell = self.gameBoard![coord] {
-                            if gridCell.player !== self.seq.first!.player! {
+                            if gridCell.player !== self.seq.first!.player {
                                 continue OuterLoop
                             }
                         }
@@ -234,11 +233,11 @@ class GridCellSeq {
     }
     
     
-    func connectWithSeq(aGridCellSeq: GridCellSeq) {
+    func connectWithSeq(_ aGridCellSeq: GridCellSeq) {
         for gridCell in aGridCellSeq.seq {
             self.seq.append(gridCell)
         }
-        self.seq = self.seq.sort{$0.coord < $1.coord}
+        self.seq = self.seq.sorted{$0.coord < $1.coord}
     }
     
     func copy() -> GridCellSeq {
