@@ -17,8 +17,9 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
     
     @IBOutlet weak var newButton: UIBarButtonItem!
     
-    var boardView: BoardView!
     var gameBoard: GameBoard!
+    var boardView: BoardView!
+    var mapView: BoardMapView!
 
     var icons: [UIImage]!
     var lastCell: GridCell?
@@ -41,14 +42,14 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
     override func loadView() {
         super.loadView()
         self.createBoardView()
-        
+        //self.createMapView()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
 //        self.navigationController!.navigationBar.titleTextAttributes = NSDictionary(object: UIColor.lightGrayColor(), forKey: NSForegroundColorAttributeName) as! [String : AnyObject]
-        self.navigationController!.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.lightGray]
+        self.navigationController!.navigationBar.titleTextAttributes = [NSAttributedStringKey.foregroundColor: UIColor.lightGray]
         
         self.numOfWins = UserDefaults.standard.integer(forKey: kUserDefaultKeyForWins)
         self.numOfLoses = UserDefaults.standard.integer(forKey: kUserDefaultKeyForLoses)
@@ -77,6 +78,13 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
         self.boardView.clearsContextBeforeDrawing = false
         self.view.addSubview(self.boardView)
 //        self.view.userInteractionEnabled = false
+    }
+    
+    func createMapView() {
+        let mapViewFrame = CGRect(x: view.frame.size.width - 100.0, y: view.frame.size.height - 100.0, width: 100.0, height: 100.0)
+        mapView = BoardMapView(frame: mapViewFrame)
+        mapView.backgroundColor = UIColor.red
+        view.addSubview(mapView)
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -198,7 +206,7 @@ class BoardViewController: UIViewController, UIScrollViewDelegate, BoardViewData
         let winningCellCoords = self.gameBoard.currentPlayer.winningCellSeq!.cellCoords
 //        self.boardView.scrollToShowCellCoordAtCenter(winningCellCoords[winningCellCoords.count / 2])
         
-        self.boardView.scrollToShowCellCoordAtCenter(winningCellCoords[winningCellCoords.count / 2]) { _ in
+        self.boardView.scrollToShowCellCoordAtCenter(winningCellCoords[winningCellCoords.count / 2]) {
             self.drawALineToConnectWinningCounters { () -> Void in
                 let message = "\(self.gameBoard.currentPlayer.name) Won!"
                 let alert = UIAlertController(title: nil, message: message, preferredStyle: UIAlertControllerStyle.alert)

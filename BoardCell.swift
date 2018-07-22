@@ -67,7 +67,7 @@ class BoardCell: UIView {
     }
     
     
-    func onBoardCellTapped(_ sender: UIButton) {
+    @objc func onBoardCellTapped(_ sender: UIButton) {
 //        sender.backgroundColor = UIColor.greenColor()
         self.delegate?.onBoardCellTapped(self)
     }

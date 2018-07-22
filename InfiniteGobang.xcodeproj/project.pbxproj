@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3627034C1E4EE9E800839D3E /* BoardMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3627034B1E4EE9E800839D3E /* BoardMapView.swift */; };
+		3627034D1E4EE9E800839D3E /* BoardMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3627034B1E4EE9E800839D3E /* BoardMapView.swift */; };
+		3627034E1E4EE9E800839D3E /* BoardMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3627034B1E4EE9E800839D3E /* BoardMapView.swift */; };
 		364AE9101B571A5B00C8C715 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364AE90F1B571A5B00C8C715 /* AppDelegate.swift */; };
 		364AE9151B571A5B00C8C715 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 364AE9131B571A5B00C8C715 /* Main.storyboard */; };
 		364AE9171B571A5B00C8C715 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 364AE9161B571A5B00C8C715 /* Assets.xcassets */; };
@@ -42,6 +45,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3627034B1E4EE9E800839D3E /* BoardMapView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoardMapView.swift; sourceTree = "<group>"; };
 		364AE90C1B571A5B00C8C715 /* InfiniteGobang.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InfiniteGobang.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		364AE90F1B571A5B00C8C715 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		364AE9141B571A5B00C8C715 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -123,6 +127,7 @@
 				364AE94B1B571C2F00C8C715 /* Computer.swift */,
 				364AE94F1B571C9500C8C715 /* BoardView.swift */,
 				364AE9511B571CBF00C8C715 /* BoardCell.swift */,
+				3627034B1E4EE9E800839D3E /* BoardMapView.swift */,
 				364AE9131B571A5B00C8C715 /* Main.storyboard */,
 				364AE9161B571A5B00C8C715 /* Assets.xcassets */,
 				364AE9181B571A5C00C8C715 /* LaunchScreen.storyboard */,
@@ -211,22 +216,22 @@
 		364AE9041B571A5B00C8C715 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0820;
+				LastUpgradeCheck = 0940;
 				ORGANIZATIONNAME = "zhenduo zhu";
 				TargetAttributes = {
 					364AE90B1B571A5B00C8C715 = {
 						CreatedOnToolsVersion = 7.0;
 						DevelopmentTeam = 75KYW377T5;
-						LastSwiftMigration = 0820;
+						LastSwiftMigration = 0940;
 					};
 					364AE91F1B571A5C00C8C715 = {
 						CreatedOnToolsVersion = 7.0;
-						LastSwiftMigration = 0820;
+						LastSwiftMigration = 0940;
 						TestTargetID = 364AE90B1B571A5B00C8C715;
 					};
 					364AE92A1B571A5C00C8C715 = {
 						CreatedOnToolsVersion = 7.0;
-						LastSwiftMigration = 0820;
+						LastSwiftMigration = 0940;
 						TestTargetID = 364AE90B1B571A5B00C8C715;
 					};
 				};
@@ -285,6 +290,7 @@
 			files = (
 				364AE9421B571B3600C8C715 /* GameBoard.swift in Sources */,
 				364AE9481B571BED00C8C715 /* GridCellSeq.swift in Sources */,
+				3627034C1E4EE9E800839D3E /* BoardMapView.swift in Sources */,
 				364AE9101B571A5B00C8C715 /* AppDelegate.swift in Sources */,
 				364AE9521B571CBF00C8C715 /* BoardCell.swift in Sources */,
 				364AE94A1B571C0F00C8C715 /* Player.swift in Sources */,
@@ -300,6 +306,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3627034D1E4EE9E800839D3E /* BoardMapView.swift in Sources */,
 				36D9923D1B59BF6A0018EB74 /* InfiniteGobangTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -308,6 +315,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3627034E1E4EE9E800839D3E /* BoardMapView.swift in Sources */,
 				364AE9301B571A5C00C8C715 /* InfiniteGobangUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -355,14 +363,22 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -402,14 +418,22 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -442,9 +466,10 @@
 				DEVELOPMENT_TEAM = 75KYW377T5;
 				INFOPLIST_FILE = InfiniteGobang/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = zzd.InfiniteGobang;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zzd.InfiniteGobang;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -455,9 +480,10 @@
 				DEVELOPMENT_TEAM = 75KYW377T5;
 				INFOPLIST_FILE = InfiniteGobang/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = zzd.InfiniteGobang;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zzd.InfiniteGobang;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
@@ -469,7 +495,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = zzd.InfiniteGobangTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/InfiniteGobang.app/InfiniteGobang";
 			};
 			name = Debug;
@@ -482,7 +509,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = zzd.InfiniteGobangTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/InfiniteGobang.app/InfiniteGobang";
 			};
 			name = Release;
@@ -494,7 +522,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = zzd.InfiniteGobangUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 				TEST_TARGET_NAME = InfiniteGobang;
 				USES_XCTRUNNER = YES;
 			};
@@ -507,7 +536,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = zzd.InfiniteGobangUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 				TEST_TARGET_NAME = InfiniteGobang;
 				USES_XCTRUNNER = YES;
 			};

@@ -109,6 +109,7 @@ final class BoardView: UIScrollView {
     }
     
     
+    
     required init?(coder aDecoder: NSCoder) {
         self.cells = [[BoardCell]]()
         self.reusableCells = [BoardCell]()
